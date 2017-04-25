@@ -40,11 +40,11 @@ class State:
 
 	def run():
 		self.initializeGame()
-		while !self.GameOver():
+		while not self.GameOver():
 			for player in players:
-				if !player.influence:
+				if not player.influence:
 					continue
-				
+
 
 
 
