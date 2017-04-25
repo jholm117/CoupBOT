@@ -1,4 +1,5 @@
 from random import shuffle
+import Controller
 
 characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
 actions = ['Income', 'Foreign Aid', 'Coup', 'Tax', 'Assassinate', 'Exchange', 'Steal']
@@ -8,39 +9,41 @@ counteractions = ['Block Foreign Aid', 'Block Stealing', 'Block Assassination']
 class State:
 	def __init__(self):
 		self.players = []
-		self.deck = None
+		self.deck = []
 		self.bank = 50
 
-	def StartMenu():
-		number = raw_input('Enter number of players')
+	def StartMenu(self):
+		number = raw_input('Enter number of players\n')	
 		return int(number)
 
-	def initializeGame(numPlayers):
+	def initializeGame(self, numPlayers):
 		
 		# Add numPlayers players
 		for i in range(numPlayers):
-			self.players.append()
+			self.players.append(Player())
 
-		for player in players:
+		# starting money 
+		for player in self.players:
 			player.cash = 2
-			self.bank = sef.bank - 2
+			self.bank = self.bank - 2
+
 
 		# Add 3 of each card to deck, and then shuffle
 		for character in characters:
 			for i in range(3):
-				deck.append(Card(character = character))
+				self.deck.append(Card(character = character))
 
-		shuffle(deck)
+		shuffle(self.deck)
 
 		# Fill each players hand with 2 cards from the deck
-		for player in players:
-			player.cards.append(deck.pop())
-			player.cards.append(deck.pop())
+		for player in self.players:
+			player.cards.append(self.deck.pop())
+			player.cards.append(self.deck.pop())
 
-	def GameOver():
+	def GameOver(self):
 		# Game is not over if two players have influence
 		firstPlayer = False
-		for player in players:
+		for player in self.players:
 			if player.influence:
 				if firstPlayer:
 					return False
@@ -48,14 +51,16 @@ class State:
 				
 		return True
 
-	def run():
-		numPlayers = StartMenu()
+	def run(self):
+		numPlayers = self.StartMenu()
 		self.initializeGame(numPlayers)
 		while not self.GameOver():
-			for player in players:
+			for player in self.players:
 				if not player.influence:
 					continue
-
+				else:
+					#player.handler.TakeTurn()
+					continue
 		print "Game Over"
 
 
@@ -68,10 +73,22 @@ class Player:
 		self.cards = []
 		self.cash = 0
 		self.influence = 2
+		self.handler = Controller.Controller(self)
 
-	def takeAction(target):
+	#def takeAction(target):
 
 class Card:
 	def __init__(self, character = None):
 		self.character = None
 		self.revealed = False
+
+
+#called at run-time
+def main():
+	state = State()
+	state.run()
+	return
+
+
+if __name__=="__main__":
+	main()
