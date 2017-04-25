@@ -9,11 +9,21 @@ class State:
 	def __init__(self):
 		self.players = []
 		self.deck = None
+		self.bank = 50
 
-	def initializeGame():
-		# Add 6 random players
-		for i in range(6):
+	def StartMenu():
+		number = raw_input('Enter number of players')
+		return int(number)
+
+	def initializeGame(numPlayers):
+		
+		# Add numPlayers players
+		for i in range(numPlayers):
 			self.players.append()
+
+		for player in players:
+			player.cash = 2
+			self.bank = sef.bank - 2
 
 		# Add 3 of each card to deck, and then shuffle
 		for character in characters:
@@ -39,11 +49,14 @@ class State:
 		return True
 
 	def run():
-		self.initializeGame()
+		numPlayers = StartMenu()
+		self.initializeGame(numPlayers)
 		while not self.GameOver():
 			for player in players:
 				if not player.influence:
 					continue
+
+		print "Game Over"
 
 
 
@@ -53,7 +66,7 @@ class Player:
 		self.name = None
 		self.type = None
 		self.cards = []
-		self.cash = 2
+		self.cash = 0
 		self.influence = 2
 
 	def takeAction(target):
