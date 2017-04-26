@@ -58,9 +58,8 @@ class State:
 			for player in self.players:
 				if not player.influence:
 					continue
-				else:
-					#player.handler.TakeTurn()
-					continue
+
+				#player.handler.TakeTurn()
 		print "Game Over"
 
 
@@ -79,7 +78,7 @@ class Player:
 
 class Card:
 	def __init__(self, character = None):
-		self.character = None
+		self.character = character
 		self.revealed = False
 
 
