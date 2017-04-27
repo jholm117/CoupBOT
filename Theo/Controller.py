@@ -13,18 +13,19 @@ class Controller:
 
 	# called on player's turn 
 	def TakeTurn(self, state):
-		action = DecideAction(state)
-		AnnounceAction(action)
-		response = ListenForResponses()
+		action = self.DecideAction(state)
+		
+		self.AnnounceAction(action)
+		response = self.ListenForResponses()
 		
 		if (response == 'challenged'):
-			RespondToChallenge()
+			self.RespondToChallenge()
 		
 		elif (response == 'countered'):
-			if DecideToChallenge():
+			if self.DecideToChallenge():
 				#if successful
-				if Challenge():
-					Act()
+				if self.Challenge():
+					self.Act()
 				else:
 					DecideCardToReveal()
 					RevealCard()
@@ -37,34 +38,43 @@ class Controller:
 		else:
 			print 'unrecognized response'
 
-		EndTurn()
+		state.DoAction(action)
+
+		#EndTurn()
+		return
 
 
 
 	#returns action
 	def DecideAction(self, state):
 		# Query user for action
-		action = None
-		target = None
-		character = None
+		
+		# Display Board State
+		DisplayBoardState(state, self.player)
 
 		print 'The available actions are:\n'
-		print actions
-		action = raw_input('Enter the action you would like to take\n')
+		
+		count = 0
+		for each in actions:
+			print count,' ', each
+			count += 1
+
+		index = int(raw_input('\nChoose a number\n'))
 		# Check that action is valid
-		while action not in actions:
+		while (index >= count or index < 0):
 			print 'Not a valid action'
-			action = raw_input('Enter the action you would like to take\n')
+			index = raw_input('Enter the action you would like to take\n')
+
+		action = Action(actions[index], self.player)
 
 		# If the action has a target, get it
-		if action in target_actions:
-			print 'The available targets are:\n'
-			print [target for target in state.players if target != self.player.name]
-			target = raw_input('Pick your target\n')
-			while target not in [target for target in state.players if target != self.player.name]:
-				print 'Not a valid target'
-				target = raw_input('Pick your target\n')
+		if action.name in target_actions:
+			print '\nAvailable Targets'
 
+			action.target = DisplayOptions(state.players,[self.player])			
+		return action
+
+		''' lets leave this out for now
 		# If the action is coup, pick the character
 		if action == 'Coup':
 			print 'The available characters to Coup are:\n'
@@ -73,11 +83,11 @@ class Controller:
 			while character not in characters:
 				print 'Not a valid character'
 				character = raw_input('Pick the character')
+		'''
 
-		return action, target, character
-
-	def DecideCardToReveal(self):
-		return
+	def DecideCardToFlip(self):
+		print self.player.name, ' WHICH CARD TO FLIP???'
+		return DisplayOptions(self.player.hand)
 
 	def RevealCard(self):
 		return
@@ -108,3 +118,41 @@ class Controller:
 	#not sure what this would do 
 	def EndTurn(self):
 		return
+
+class Action:
+	def __init__(self, n, d, t=None):
+		self.name = n
+		self.target = t
+		self.doer = d
+
+def DisplayOptions(array, elementsToExclude=[]):
+	count = 0
+
+	for each in array:
+		if each not in elementsToExclude:
+			print count, ' ', each.name
+		count += 1
+
+	index = int(raw_input('Choose a Number\n'))
+	while (index < 0 or index >= count):
+	 	index = int(raw_input('Invalid Number -- Try Again\n'))
+	return array[index]
+
+def DisplayBoardState(state, current):
+	print 'BOARD STATE'
+	for each in state.players:
+		print '\n', each.name
+		print '***********************'
+		print 'influence = ', each.influence
+		
+		for card in each.deadCards:
+			print card.name
+		print 'money = ', each.cash
+
+	print '\nMoney in the pot = ', state.bank.cash,'\n\n'
+
+	print 'Cards in Hand '
+	for each in current.hand:
+		print each.name
+	print '\n'
+	return

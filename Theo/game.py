@@ -26,6 +26,10 @@ class State:
 			
 			player = Player()
 
+			name = raw_input("Enter Player's Name\n" )
+
+			player.name = name
+
 			self.players.append(player)				# add to list of players
 
 			self.ExchangeMoney(player, self.bank, 2)	# starting money
@@ -48,10 +52,12 @@ class State:
 	def run(self):		
 		while not self.GameOver():
 			for player in self.players:
-				if not player.influence:
-					continue
+				if player.influence:
+					print '#########################################################################'
+					print "\nIt is ", player.name, "'s turn!\n"					
+					print '#########################################################################'
+					player.handler.TakeTurn(self)
 
-				#player.handler.TakeTurn()
 		print "Game Over"
 	
 	# doer attempts to take amount of money from target -(could be bank or another player)
@@ -88,41 +94,41 @@ class State:
 		return
 
 	# this may not work with the rest of the system but can be changed
-	def DoAction(self, action, doer, target):
-		print '\nAction = ',action
+	def DoAction(self, action):
+		print '\nAction = ', action.name
 
-		if(action == 'Income'):
-			self.ExchangeMoney(doer,self,bank, 1)
+		if(action.name == 'Income'):
+			self.ExchangeMoney(action.doer,self.bank, 1)
 		
-		elif(action == 'Foreign Aid'):
-			self.ExchangeMoney(doer,self.bank, 2)
+		elif(action.name == 'Foreign Aid'):
+			self.ExchangeMoney(action.doer,self.bank, 2)
 		
-		elif(action == 'Coup'):
-			self.ExchangeMoney(self.bank, doer, 7)
-			cardToReveal = target.DecideCardToFlip()		# need to write this function
+		elif(action.name == 'Coup'):
+			self.ExchangeMoney(self.bank, action.doer, 7)
+			cardToReveal = action.target.handler.DecideCardToFlip()		# need to write this function
+			self.RevealCard(action.target, cardToReveal)
 		
-		elif(action == 'Tax'):
-			self.ExchangeMoney(doer, self.bank, 3)
+		elif(action.name == 'Tax'):
+			self.ExchangeMoney(action.doer, self.bank, 3)
 		
-		elif(action == 'Steal'):
-			self.ExchangeMoney(doer, target, 2)
+		elif(action.name == 'Steal'):
+			self.ExchangeMoney(action.doer, action.target, 2)
 		
-		elif(action == 'Exchange'):
-			self.Draw(doer, 2)
+		elif(action.name == 'Exchange'):
+			self.Draw(action.doer, 2)
 
 			# need to write this function
-			cardsToDrop = doer.DecideCardsToKeep()
-			self.ShuffleIntoDeck(doer, cardsToDrop)
+			cardsToDrop = action.doer.handler.DecideCardsToKeep()
+			self.ShuffleIntoDeck(action.doer, cardsToDrop)
 		
-		elif(action == 'Assassinate'): 
-			self.ExchangeMoney(doer,self.bank,3)
+		elif(action.name == 'Assassinate'): 
+			self.ExchangeMoney(action.doer,self.bank,3)
 
-			cardToReveal = target.DecideCardToFlip()
-			RevealCard(target,cardToReveald)
+			cardToReveal = action.target.handler.DecideCardToFlip()
+			self.RevealCard(action.target, cardToReveal)
 
 		
-		else:
-			print 'action not recognized'
+		print action.name, ' Successful!\n'
 		return
 
 
@@ -139,7 +145,7 @@ class Player:
 
 class Card:
 	def __init__(self, character = None):
-		self.character = character
+		self.name = character
 		self.dead = False
 
 class Bank:
@@ -152,6 +158,7 @@ def StartMenu():
 
 	while number > 6 or number < 2:
 		number = int(raw_input('Choose 2-6 players\n'))
+
 
 	return number
 
