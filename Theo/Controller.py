@@ -20,8 +20,11 @@ class Controller:
 		print response
 
 		if (response == 'Challenge'):
-			self.RespondToChallenge()
-		
+			#if you do have the card in your hand
+			if(self.RespondToChallenge()):
+
+
+
 		elif (response == 'Block'):
 			if self.DecideToChallenge():
 				#if successful
@@ -84,10 +87,22 @@ class Controller:
 
 	# returns 'challenged', 'countered', 'allowed'
 	def ListenForResponses(self):
-		return
+		
 
-	def RespondToChallenge(self):
-		return
+	def RespondToChallenge(self,action,challenger,state):
+		for card in self.player.hand:
+			if action.associatedCard == card.name:
+				#Player wasn't lying
+				temp = challenger.DecideCardToFlip()
+				state.challenger.RevealCard(challenger, temp)
+				state.ShuffleIntoDeck(self.player, [card])
+				state.Draw(self.player, 1)
+				return
+		else:
+			#player was lying
+			temp = self.player.DecideCardToFlip()
+			state.RevealCard(self.player, temp)
+			return
 
 	# returns bool
 	def DecideToCounter(self,action):
@@ -107,19 +122,20 @@ class Controller:
 
 	# returns true if successful
 	def Challenge(self):
-		return
+		
 
 	#not sure what this would do 
 	def EndTurn(self):
 		return
 
 class Action:
-	def __init__(self, n, d, t=None):
+	def __init__(self, n, d, t=None, aC):
 		self.name = n
 		self.target = t
 		self.doer = d
 		self.isBlockable = False
 		self.isChallengeable = False
+		self.associatedCard = None
 
 # isObj = true if object array
 def DisplayOptions(array, isObj, elementsToExclude=[]):
