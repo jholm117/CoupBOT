@@ -26,20 +26,20 @@ class Controller:
 			if self.DecideToChallenge():
 				#if successful
 				if self.Challenge():
-					self.Act()
+					state.DoAction(action);
 				else:
 					DecideCardToReveal()
 					RevealCard()
 
 
 		elif(response == 'Allow'):
-			Act(action)
+			state.DoAction(action)
 		
 		# this wont ever happen but w/e
 		else:
 			print 'unrecognized response'
 
-		state.DoAction(action)
+		#state.DoAction(action)
 
 		#EndTurn()
 		return
@@ -54,37 +54,15 @@ class Controller:
 		DisplayBoardState(state, self.player)
 
 		print 'The available actions are:\n'
+		action = Action(DisplayOptions(actions,False),self.player)
 		
-		count = 0
-		for each in actions:
-			print count,' ', each
-			count += 1
-
-		index = int(raw_input('\nChoose a number\n'))
-		# Check that action is valid
-		while (index >= count or index < 0):
-			print 'Not a valid action'
-			index = raw_input('Enter the action you would like to take\n')
-
-		action = Action(actions[index], self.player)
-
 		# If the action has a target, get it
 		if action.name in target_actions:
 			print '\nAvailable Targets'
 
-			action.target = DisplayOptions(state.players,[self.player])			
-		return action
+			action.target = DisplayOptions(state.players,True,[self.player])
 
-		''' lets leave this out for now
-		# If the action is coup, pick the character
-		if action == 'Coup':
-			print 'The available characters to Coup are:\n'
-			print characters
-			character = raw_input('Pick the character')
-			while character not in characters:
-				print 'Not a valid character'
-				character = raw_input('Pick the character')
-		'''
+		return action
 
 	def DecideCardToFlip(self):
 		print self.player.name, ' WHICH CARD TO FLIP???'
@@ -99,7 +77,7 @@ class Controller:
 			if (player == self.player):
 				continue
 			response = player.handler.DecideToCounter(action) 
-			if repsonse != 'Allow':
+			if response != 'Allow':
 				return response
 
 		return response
@@ -113,17 +91,19 @@ class Controller:
 
 	# returns bool
 	def DecideToCounter(self,action):
-		print action.doer, ' wants to ', action.name
+		print action.doer.name, ' wants to ', action.name
 		if action.target != None:
-			print 'TARGET == ', action.target
-		print '1	Allow'
+			print 'TARGET == ', action.target.name
+		
+		responses = ['Allow']
 		if action.isBlockable:
-			print '2	Block'
+			responses.append('Block')
 		if action.isChallengeable:
-			print '3	Challenge'
-		userInput = raw_input('Enter Number\n')
-
-		return DisplayOptions(array)
+			responses.append('Challenge')
+		
+		response = DisplayOptions(responses, False)
+		print response
+		return response
 
 	# returns true if successful
 	def Challenge(self):
@@ -141,12 +121,16 @@ class Action:
 		self.isBlockable = False
 		self.isChallengeable = False
 
-def DisplayOptions(array, elementsToExclude=[]):
+# isObj = true if object array
+def DisplayOptions(array, isObj, elementsToExclude=[]):
 	count = 0
 
 	for each in array:
 		if each not in elementsToExclude:
-			print count, ' ', each.name
+			if isObj:
+				print count, ' ', each.name
+			else:
+				print count, ' ', each
 		count += 1
 
 	index = int(raw_input('Choose a Number\n'))
