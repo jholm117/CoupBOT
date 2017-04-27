@@ -1,24 +1,24 @@
 # This is supposed to be a prototype for the different kinds of Controlleres i.e. AI bot, Learner Bot, or Human Controller
 # Will probably move the functions directly affecting game state to game.py
 class Action:
-	def __init__(self, n, ib, ic, it, aC d=None, t=None):
+	def __init__(self, n, ib, ic, it, aC=None, d=None, t=None):
 		self.name = n
 		self.target = t
 		self.doer = d
 		self.isBlockable = ib
 		self.isChallengeable = ic
 		self.isTargetable = it
-    self.associatedCard = aC
+    	self.associatedCard = aC
 
 characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
 actions = [
 			Action('Income', False, False, False),
 			Action('Foreign Aid', True, False, False),
 			Action('Coup', False, False, True),
-			Action('Tax', False, True, False),
-			Action('Assassinate', True, True, True),
-			Action('Exchange', False, True, False),
-			Action('Steal', True, True, True)
+			Action('Tax', False, True, False,'Duke'),
+			Action('Assassinate', True, True, True,'Assassin'),
+			Action('Exchange', False, True, False'Ambassador'),
+			Action('Steal', True, True, True,'Captain')
 			]
 target_actions = ['Coup', 'Assassinate', 'Steal']
 counteractions = ['Block Foreign Aid', 'Block Stealing', 'Block Assassination']
