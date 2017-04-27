@@ -5,6 +5,7 @@ characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
 actions = ['Income', 'Foreign Aid', 'Coup', 'Tax', 'Assassinate', 'Exchange', 'Steal']
 target_actions = ['Coup', 'Assassinate', 'Steal']
 counteractions = ['Block Foreign Aid', 'Block Stealing', 'Block Assassination']
+#responses = ['Allow', 'Counter', 'Challenge']
 
 class Controller:
 	def __init__(self, player):
@@ -15,13 +16,13 @@ class Controller:
 	def TakeTurn(self, state):
 		action = self.DecideAction(state)
 		
-		self.AnnounceAction(action)
-		response = self.ListenForResponses()
-		
-		if (response == 'challenged'):
+		response = self.AnnounceAction(action, state.players)
+		print response
+
+		if (response == 'Challenge'):
 			self.RespondToChallenge()
 		
-		elif (response == 'countered'):
+		elif (response == 'Block'):
 			if self.DecideToChallenge():
 				#if successful
 				if self.Challenge():
@@ -31,7 +32,7 @@ class Controller:
 					RevealCard()
 
 
-		elif(response == 'allowed'):
+		elif(response == 'Allow'):
 			Act(action)
 		
 		# this wont ever happen but w/e
@@ -93,8 +94,15 @@ class Controller:
 		return
 		
 	# tells other players intended action
-	def AnnounceAction(self,action):
-		return
+	def AnnounceAction(self,action,players):
+		for player in players:
+			if (player == self.player):
+				continue
+			response = player.handler.DecideToCounter(action) 
+			if repsonse != 'Allow':
+				return response
+
+		return response
 
 	# returns 'challenged', 'countered', 'allowed'
 	def ListenForResponses(self):
@@ -104,15 +112,21 @@ class Controller:
 		return
 
 	# returns bool
-	def DecideToChallenge(self):
-		return
+	def DecideToCounter(self,action):
+		print action.doer, ' wants to ', action.name
+		if action.target != None:
+			print 'TARGET == ', action.target
+		print '1	Allow'
+		if action.isBlockable:
+			print '2	Block'
+		if action.isChallengeable:
+			print '3	Challenge'
+		userInput = raw_input('Enter Number\n')
+
+		return DisplayOptions(array)
 
 	# returns true if successful
 	def Challenge(self):
-		return
-
-	#performs action
-	def Act(self,action):
 		return
 
 	#not sure what this would do 
@@ -124,6 +138,8 @@ class Action:
 		self.name = n
 		self.target = t
 		self.doer = d
+		self.isBlockable = False
+		self.isChallengeable = False
 
 def DisplayOptions(array, elementsToExclude=[]):
 	count = 0
