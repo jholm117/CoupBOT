@@ -1,13 +1,14 @@
 # This is supposed to be a prototype for the different kinds of Controlleres i.e. AI bot, Learner Bot, or Human Controller
 # Will probably move the functions directly affecting game state to game.py
 class Action:
-	def __init__(self, n, ib, ic, it, d=None, t=None):
+	def __init__(self, n, ib, ic, it, aC d=None, t=None):
 		self.name = n
 		self.target = t
 		self.doer = d
 		self.isBlockable = ib
 		self.isChallengeable = ic
 		self.isTargetable = it
+    self.associatedCard = aC
 
 characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
 actions = [
@@ -36,8 +37,11 @@ class Controller:
 		print response
 
 		if (response == 'Challenge'):
-			self.RespondToChallenge()
-		
+			#if you do have the card in your hand
+			if(self.RespondToChallenge()):
+
+
+
 		elif (response == 'Block'):
 			if self.DecideToChallenge():
 				#if successful
@@ -100,10 +104,22 @@ class Controller:
 
 	# returns 'challenged', 'countered', 'allowed'
 	def ListenForResponses(self):
-		return
+		
 
-	def RespondToChallenge(self):
-		return
+	def RespondToChallenge(self,action,challenger,state):
+		for card in self.player.hand:
+			if action.associatedCard == card.name:
+				#Player wasn't lying
+				temp = challenger.DecideCardToFlip()
+				state.challenger.RevealCard(challenger, temp)
+				state.ShuffleIntoDeck(self.player, [card])
+				state.Draw(self.player, 1)
+				return
+		else:
+			#player was lying
+			temp = self.player.DecideCardToFlip()
+			state.RevealCard(self.player, temp)
+			return
 
 	# returns bool
 	def DecideToCounter(self,action):
@@ -123,12 +139,11 @@ class Controller:
 
 	# returns true if successful
 	def Challenge(self):
-		return
+		
 
 	#not sure what this would do 
 	def EndTurn(self):
 		return
-
 
 # isObj = true if object array
 def DisplayOptions(array, isObj, elementsToExclude=[]):
