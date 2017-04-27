@@ -1,8 +1,25 @@
 # This is supposed to be a prototype for the different kinds of Controlleres i.e. AI bot, Learner Bot, or Human Controller
 # Will probably move the functions directly affecting game state to game.py
+class Action:
+	def __init__(self, n, ib, ic, it, aC d=None, t=None):
+		self.name = n
+		self.target = t
+		self.doer = d
+		self.isBlockable = ib
+		self.isChallengeable = ic
+		self.isTargetable = it
+    self.associatedCard = aC
 
 characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
-actions = ['Income', 'Foreign Aid', 'Coup', 'Tax', 'Assassinate', 'Exchange', 'Steal']
+actions = [
+			Action('Income', False, False, False),
+			Action('Foreign Aid', True, False, False),
+			Action('Coup', False, False, True),
+			Action('Tax', False, True, False),
+			Action('Assassinate', True, True, True),
+			Action('Exchange', False, True, False),
+			Action('Steal', True, True, True)
+			]
 target_actions = ['Coup', 'Assassinate', 'Steal']
 counteractions = ['Block Foreign Aid', 'Block Stealing', 'Block Assassination']
 #responses = ['Allow', 'Counter', 'Challenge']
@@ -57,12 +74,12 @@ class Controller:
 		DisplayBoardState(state, self.player)
 
 		print 'The available actions are:\n'
-		action = Action(DisplayOptions(actions,False),self.player)
-		
-		# If the action has a target, get it
-		if action.name in target_actions:
-			print '\nAvailable Targets'
+		action = DisplayOptions(actions,True)
+		action.doer = self.player
 
+		# If the action has a target, get it
+		if action.isTargetable:
+			print '\nAvailable Targets'
 			action.target = DisplayOptions(state.players,True,[self.player])
 
 		return action
@@ -127,15 +144,6 @@ class Controller:
 	#not sure what this would do 
 	def EndTurn(self):
 		return
-
-class Action:
-	def __init__(self, n, d, t=None, aC):
-		self.name = n
-		self.target = t
-		self.doer = d
-		self.isBlockable = False
-		self.isChallengeable = False
-		self.associatedCard = None
 
 # isObj = true if object array
 def DisplayOptions(array, isObj, elementsToExclude=[]):
