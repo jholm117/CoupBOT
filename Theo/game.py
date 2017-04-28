@@ -79,6 +79,7 @@ class State:
 		player.influence -= 1
 		if player.influence < 1:
 			self.deadPlayers.append(player)
+			self.ExchangeMoney(self.bank,player,player.cash)
 
 		card.dead = True
 		player.deadCards.append(card)

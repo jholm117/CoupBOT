@@ -38,7 +38,8 @@ class Controller:
 
 		if (response[0] == 'Challenge'):
 			#if you do have the card in your hand
-			self.RespondToChallenge(action.associatedCard,response[1],state)
+			if self.RespondToChallenge(action.associatedCard,response[1],state):
+				state.DoAction(action)
 
 		
 
@@ -59,25 +60,45 @@ class Controller:
 		
 		# Display Board State
 		DisplayBoardState(state, self.player)
-		action = DisplayOptions('\nThe available actions are:',availableActions,True)
+		action = DisplayOptions('\nAvailable Actions:',availableActions,True)
 		action.doer = self.player
 
 		# If the action has a target, get it
 		if action.isTargetable:
-			action.target = DisplayOptions('\nAvailable Targets',state.players,True,[self.player]+self.state.deadPlayers)
+			action.target = DisplayOptions('\nAvailable Targets:',state.players,True,[self.player]+self.state.deadPlayers)
 
 		return action
 
+		# this is bad -- should optimize this
 	def DetermineAvailableActions(self):		
+		
 		#must coup above 10 coins
 		if self.player.cash >= 10:
 			return [actions[6]]
 
 		#else return all actions that self can afford
 		availableActions = []
+		#availableActions.append(actions[5])	# Exchange
+
 		for each in actions:
 			if self.player.cash >= each.cost:
 				availableActions.append(each)
+		
+		if self.state.bank < 3:
+			availableActions.remove(actions[2])
+		if self.state.bank < 2:
+			availableActions.remove(actions [1])
+		if self.state.bank < 1:
+			availableActions.remove(actions[0])
+
+		for each in self.state.players:
+			if each == self.player:
+				continue
+			if each.cash >= 2:
+				return availableActions
+
+		availableActions.remove(actions[4])
+
 		return availableActions
 
 
@@ -90,7 +111,7 @@ class Controller:
 	# tells other players intended action
 	def AnnounceAction(self,action,players):
 		for player in players:
-			if (player == self.player):
+			if (player == self.player or player.influence == 0):
 				continue
 			response = player.handler.DecideToCounterAction(action) 
 			if response != 'Allow':
@@ -101,7 +122,7 @@ class Controller:
 	# returns whether Block is successful
 	def AnnounceBlock(self,state,action,card, blocker):
 		for player in state.players:
-			if player == blocker:
+			if player == blocker or player.influence == 0:
 				continue
 			else:				
 				if player.handler.DecideToChallengeBlock(action, blocker, card):
@@ -131,7 +152,7 @@ class Controller:
 		return False		
 
 	def DecideToChallengeBlock(self, action, blocker, card):
-		p= blocker.name, ' wants to block', action.doer.name,"'s ", action.name, ' with ', card
+		p= blocker.name+ ' wants to block '+ action.doer.name+"'s "+ action.name+ ' with '+ card
 		responses = ["Allow", "Challenge"]
 		
 		if DisplayOptions(p,responses,False) == 'Challenge':
@@ -141,9 +162,12 @@ class Controller:
 
 	# returns Allow, Challenge, or Card to block with
 	def DecideToCounterAction(self,action):
-		print action.doer.name, ' wants to ', action.name
+		print '\n************'
+		print self.player.name, "'s Response"
+		print '************'
+		p = action.doer.name+ ' wants to '+ action.name
 		if action.target != None:
-			print 'TARGET == ', action.target.name
+			p+= ' /// TARGET == '+ action.target.name
 		
 		responses = ['Allow']
 		if action.isBlockable:
@@ -153,8 +177,8 @@ class Controller:
 		if action.isChallengeable:
 			responses.append('Challenge')
 
-		p= 'How do you want to respond ' + self.player.name + ' ??'
-		#print '******'
+		#p= 'How do you want to respond ' + self.player.name + ' ??'
+		
 		response = DisplayOptions(p,responses, False)
 		if response == 'Block':			
 			response = DisplayOptions("Block With?",action.blockableBy,False)
@@ -164,9 +188,9 @@ class Controller:
 	# Player selects cards to put back into deck after exchanging
 	def DecideCardsToKeep(self):
 		
-		card1 = DisplayOptions('Choose A Card to Get rid of', self.player.hand,True, self.player.deadCards)
+		card1 = DisplayOptions('Get rid of One Card:', self.player.hand,True, self.player.deadCards)
 		 
-		card2 = DisplayOptions('Choose Another Card to Get rid of',self.player.hand,True,self.player.deadCards+[card1])
+		card2 = DisplayOptions('Get rid of Another Card:',self.player.hand,True,self.player.deadCards+[card1])
 		
 		return [card1,card2]
 
@@ -197,9 +221,9 @@ def DisplayBoardState(state, current):
 		print '********'
 		for card in each.hand:
 			if card.dead:
-				print card.name, ' *DEAD*'
+				print 'X - ', card.name 
 			elif each == current:
-				print card.name, ' -- ?'
+				print '? - ', card.name
 			else:
 				print '?'
 
@@ -213,10 +237,10 @@ def ReadIntInput(output, possibleInputs):
 			if ret in possibleInputs:
 				return ret
 			else:
-				print 'Please Choose a Valid Number'
+				print 'Choose a Valid Number'
 
 		except ValueError:
-			print 'Please Enter a Number -- Try Again'
+			print 'Enter a Number -- Try Again'
 
 def PrintCoins(num,delim):
 	s=''
