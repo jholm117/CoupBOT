@@ -59,15 +59,12 @@ class Controller:
 		
 		# Display Board State
 		DisplayBoardState(state, self.player)
-
-		print '\nThe available actions are:'
-		action = DisplayOptions(availableActions,True)
+		action = DisplayOptions('\nThe available actions are:',availableActions,True)
 		action.doer = self.player
 
 		# If the action has a target, get it
 		if action.isTargetable:
-			print '\nAvailable Targets'
-			action.target = DisplayOptions(state.players,True,[self.player]+self.state.deadPlayers)
+			action.target = DisplayOptions('\nAvailable Targets',state.players,True,[self.player]+self.state.deadPlayers)
 
 		return action
 
@@ -87,8 +84,8 @@ class Controller:
 
 
 	def DecideCardToFlip(self):
-		print self.player.name, ', WHICH CARD TO FLIP???'
-		return DisplayOptions(self.player.hand,True,self.player.deadCards)
+		p = self.player.name+', Flip a Card!'
+		return DisplayOptions(p,self.player.hand,True,self.player.deadCards)
 
 	# tells other players intended action
 	def AnnounceAction(self,action,players):
@@ -134,10 +131,10 @@ class Controller:
 		return False		
 
 	def DecideToChallengeBlock(self, action, blocker, card):
-		print blocker.name, ' wants to block', action.doer.name,"'s ", action.name, ' with ', card
+		p= blocker.name, ' wants to block', action.doer.name,"'s ", action.name, ' with ', card
 		responses = ["Allow", "Challenge"]
 		
-		if DisplayOptions(responses,False) == 'Challenge':
+		if DisplayOptions(p,responses,False) == 'Challenge':
 			return True
 		return False
 		
@@ -156,29 +153,29 @@ class Controller:
 		if action.isChallengeable:
 			responses.append('Challenge')
 
-		print 'How do you want to respond ', self.player.name, ' ??'
-		print '******'
-		response = DisplayOptions(responses, False)
-		if response == 'Block':
-			print "Block With?"
-			response = DisplayOptions(action.blockableBy,False)
+		p= 'How do you want to respond ' + self.player.name + ' ??'
+		#print '******'
+		response = DisplayOptions(p,responses, False)
+		if response == 'Block':			
+			response = DisplayOptions("Block With?",action.blockableBy,False)
 
 		return response
 
 	# Player selects cards to put back into deck after exchanging
 	def DecideCardsToKeep(self):
-		print 'Choose A Card to Get rid of'
-		card1 = DisplayOptions(self.player.hand,True, self.player.deadCards)
-		print 'Choose Another Card to Get rid of'
-		card2 = DisplayOptions(self.player.hand,True,self.player.deadCards+[card1])
+		
+		card1 = DisplayOptions('Choose A Card to Get rid of', self.player.hand,True, self.player.deadCards)
+		 
+		card2 = DisplayOptions('Choose Another Card to Get rid of',self.player.hand,True,self.player.deadCards+[card1])
 		
 		return [card1,card2]
 
 
 # isObj = true if object array
-def DisplayOptions(array, isObj, elementsToExclude=[]):
+def DisplayOptions(prompt,array, isObj, elementsToExclude=[]):
 	count = 0
 	indicesPrinted=[]
+	print prompt
 	for each in array:		
 		count +=1
 		if each not in elementsToExclude:			
@@ -193,30 +190,20 @@ def DisplayOptions(array, isObj, elementsToExclude=[]):
 	return array[index-1]
 
 def DisplayBoardState(state, current):
-	print '\nBank = ', state.bank.cash
+	#print '\nBank = ', state.bank.cash
+	PrintCoins(state.bank.cash,10)
 	for each in state.players:
-		print '\n', each.name
-		print '***************'
+		print '\n ', each.name
+		print '********'
 		for card in each.hand:
 			if card.dead:
 				print card.name, ' *DEAD*'
 			elif each == current:
-				print card.name, ' -- Hidden'
+				print card.name, ' -- ?'
 			else:
-				print 'Unknown'
+				print '?'
 
-		s=''
-		for i in range(each.cash):
-			s +='o'
-		print s
-	'''
-	print '*******************'
-	print '*  Cards in Hand  *'
-	print '*******************'
-	for card in current.hand:
-		if not card.dead:
-			print card.name
-	'''	
+		PrintCoins(each.cash,5)
 	return
 
 def ReadIntInput(output, possibleInputs):
@@ -231,4 +218,13 @@ def ReadIntInput(output, possibleInputs):
 		except ValueError:
 			print 'Please Enter a Number -- Try Again'
 
+def PrintCoins(num,delim):
+	s=''
+	for i in range(num):
+		if i != 0 and i % delim == 0:
+			s+='\n'
+		s +='o'
+		
+	print s
 
+	return
