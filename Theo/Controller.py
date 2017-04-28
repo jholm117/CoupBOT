@@ -1,7 +1,6 @@
 # This is supposed to be a prototype for the different kinds of Controlleres i.e. AI bot, Learner Bot, or Human Controller
-# Will probably move the functions directly affecting game state to game.py
 class Action:
-	def __init__(self, n, ib, ic, it, bb=None,ac=None):
+	def __init__(self, n, ib, ic, it, c=0, bb=None,ac=None):
 		self.name = n
 		self.target = None
 		self.doer = None
@@ -10,26 +9,29 @@ class Action:
 		self.isTargetable = it
 		self.associatedCard = ac
 		self.blockableBy = bb
+		self.cost = c
 
-characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
 actions = [
 			Action('Income', False, False, False),
-			Action('Foreign Aid', True, False, False, ['Duke']),
-			Action('Coup', False, False, True),
-			Action('Tax', False, True, False, None, 'Duke'),
-			Action('Assassinate', True, True, True, ['Contessa'], 'Assassin'),
-			Action('Exchange', False, True, False, None,'Ambassador'),
-			Action('Steal', True, True, True,['Captain','Ambassador'], 'Captain')
+			Action('Foreign Aid', True, False, False, 0, ['Duke']),
+			Action('Tax', False, True, False, None, 0, 'Duke'),
+			Action('Assassinate', True, True, True, 3,['Contessa'], 'Assassin'),
+			Action('Steal', True, True, True,0,['Captain','Ambassador'], 'Captain'),
+			Action('Exchange', False, True, False,0, None,'Ambassador'),
+			Action('Coup', False, False, True,7)
 			]
 
 class Controller:
-	def __init__(self, player):
+	def __init__(self, player, state=None):
 		self.player = player
+		self.state = state
 		
 
 	# called on player's turn 
 	def TakeTurn(self, state):
-		action = self.DecideAction(state)
+		availableActions = self.DetermineAvailableActions()
+		
+		action = self.DecideAction(state,availableActions)
 		
 		response = self.AnnounceAction(action, state.players)
 		
@@ -52,22 +54,37 @@ class Controller:
 
 
 	#returns action
-	def DecideAction(self, state):
+	def DecideAction(self, state, availableActions):
 		# Query user for action
 		
 		# Display Board State
 		DisplayBoardState(state, self.player)
 
-		print 'The available actions are:\n'
-		action = DisplayOptions(actions,True)
+		print '\nThe available actions are:'
+		action = DisplayOptions(availableActions,True)
 		action.doer = self.player
 
 		# If the action has a target, get it
 		if action.isTargetable:
 			print '\nAvailable Targets'
-			action.target = DisplayOptions(state.players,True,[self.player])
+			action.target = DisplayOptions(state.players,True,[self.player]+self.state.deadPlayers)
 
 		return action
+
+	def DetermineAvailableActions(self):		
+		#must coup above 10 coins
+		if self.player.cash >= 10:
+			return [actions[6]]
+
+		#else return all actions that self can afford
+		availableActions = []
+		for each in actions:
+			if self.player.cash >= each.cost:
+				availableActions.append(each)
+		return availableActions
+
+
+
 
 	def DecideCardToFlip(self):
 		print self.player.name, ', WHICH CARD TO FLIP???'
@@ -148,39 +165,70 @@ class Controller:
 
 		return response
 
+	# Player selects cards to put back into deck after exchanging
+	def DecideCardsToKeep(self):
+		print 'Choose A Card to Get rid of'
+		card1 = DisplayOptions(self.player.hand,True, self.player.deadCards)
+		print 'Choose Another Card to Get rid of'
+		card2 = DisplayOptions(self.player.hand,True,self.player.deadCards+[card1])
+		
+		return [card1,card2]
+
 
 # isObj = true if object array
 def DisplayOptions(array, isObj, elementsToExclude=[]):
 	count = 0
-
-	for each in array:
-		if each not in elementsToExclude:
+	indicesPrinted=[]
+	for each in array:		
+		count +=1
+		if each not in elementsToExclude:			
 			if isObj:
 				print count, ' ', each.name
 			else:
 				print count, ' ', each
-		count += 1
+			indicesPrinted.append(count)
+		
 
-	index = int(raw_input('Choose a Number\n'))
-	while (index < 0 or index >= count):
-	 	index = int(raw_input('Invalid Number -- Try Again\n'))
-	return array[index]
+	index = ReadIntInput('Choose a Number\n', indicesPrinted)
+	return array[index-1]
 
 def DisplayBoardState(state, current):
-	print 'BOARD STATE'
+	print '\nBank = ', state.bank.cash
 	for each in state.players:
 		print '\n', each.name
-		print '***********************'
-		print 'influence = ', each.influence
-		
-		for card in each.deadCards:
+		print '***************'
+		for card in each.hand:
+			if card.dead:
+				print card.name, ' *DEAD*'
+			elif each == current:
+				print card.name, ' -- Hidden'
+			else:
+				print 'Unknown'
+
+		s=''
+		for i in range(each.cash):
+			s +='o'
+		print s
+	'''
+	print '*******************'
+	print '*  Cards in Hand  *'
+	print '*******************'
+	for card in current.hand:
+		if not card.dead:
 			print card.name
-		print 'money = ', each.cash
-
-	print '\nMoney in the pot = ', state.bank.cash,'\n\n'
-
-	print 'Cards in Hand '
-	for each in current.hand:
-		print each.name
-	print '\n'
+	'''	
 	return
+
+def ReadIntInput(output, possibleInputs):
+	while True:
+		try:
+			ret = int(raw_input(output))
+			if ret in possibleInputs:
+				return ret
+			else:
+				print 'Please Choose a Valid Number'
+
+		except ValueError:
+			print 'Please Enter a Number -- Try Again'
+
+

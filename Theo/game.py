@@ -9,6 +9,7 @@ counteractions = ['Block Foreign Aid', 'Block Stealing', 'Block Assassination']
 class State:
 	def __init__(self):
 		self.players = []
+		self.deadPlayers = []
 		self.deck = []
 		self.bank = Bank()
 
@@ -25,10 +26,11 @@ class State:
 		for i in range(numPlayers):
 			
 			player = Player()
-
-			name = raw_input("Enter Player's Name\n" )
+			s = "Enter Player " + str(i+1) + "'s Name\n"
+			name = raw_input(s)
 
 			player.name = name
+			player.handler.state = self
 
 			self.players.append(player)				# add to list of players
 
@@ -53,9 +55,9 @@ class State:
 		while not self.GameOver():
 			for player in self.players:
 				if player.influence:
-					print '#########################################################################'
-					print "\nIt is ", player.name, "'s turn!\n"					
-					print '#########################################################################'
+					print '#########################################'
+					print " 	It is ", player.name, "'s turn!"					
+					print '#########################################'
 					player.handler.TakeTurn(self)
 
 		print "Game Over"
@@ -75,8 +77,13 @@ class State:
 	# move card from hand to deadCards array
 	def RevealCard(self, player, card):
 		player.influence -= 1
+		if player.influence < 1:
+			self.deadPlayers.append(player)
+
+		card.dead = True
 		player.deadCards.append(card)
-		player.hand.remove(card)
+		#player.hand.remove(card)
+		return
 
 	# player draws number cards - called during intialization, incorrect BS calls, and Exchange
 	def Draw(self,player,number):
@@ -95,7 +102,7 @@ class State:
 
 	# this may not work with the rest of the system but can be changed
 	def DoAction(self, action):
-		print '\nAction = ', action.name
+		#print '\nAction = ', action.name
 
 		if(action.name == 'Income'):
 			self.ExchangeMoney(action.doer,self.bank, 1)
@@ -116,8 +123,6 @@ class State:
 		
 		elif(action.name == 'Exchange'):
 			self.Draw(action.doer, 2)
-
-			# need to write this function
 			cardsToDrop = action.doer.handler.DecideCardsToKeep()
 			self.ShuffleIntoDeck(action.doer, cardsToDrop)
 		
@@ -141,7 +146,7 @@ class Player:
 		self.deadCards = []
 		self.cash = 0
 		self.influence = 2
-		self.handler = Controller.Controller(self)
+		self.handler = Controller.Controller(self,)
 
 class Card:
 	def __init__(self, character = None):
@@ -154,12 +159,11 @@ class Bank:
 
 
 def StartMenu():
-	number = int(raw_input('Enter number of players\n'))
-
-	while number > 6 or number < 2:
-		number = int(raw_input('Choose 2-6 players\n'))
-
-
+	print '##################################################################'
+	print '		WELCOME TO THE COUP ARENA'
+	print '##################################################################'
+	print '\nHow many players??'
+	number = Controller.ReadIntInput('Choose Between 2-6 \n',[2,3,4,5,6])
 	return number
 
 #called at run-time
