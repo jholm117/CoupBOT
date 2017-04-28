@@ -88,7 +88,7 @@ class Controller:
 
 	def DecideCardToFlip(self):
 		print self.player.name, ', WHICH CARD TO FLIP???'
-		return DisplayOptions(self.player.hand,True)
+		return DisplayOptions(self.player.hand,True,self.player.deadCards)
 
 	# tells other players intended action
 	def AnnounceAction(self,action,players):
@@ -121,7 +121,7 @@ class Controller:
 				#Player wasn't lying -- Action successful
 				print challenger.name, ' incorrectly challenged ', self.player.name, ' !!!\n'
 				temp = challenger.handler.DecideCardToFlip()
-				state.challenger.RevealCard(challenger, temp)
+				state.RevealCard(challenger, temp)
 				state.ShuffleIntoDeck(self.player, [card])
 				state.Draw(self.player, 1)
 										
