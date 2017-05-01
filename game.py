@@ -1,9 +1,8 @@
 from random import shuffle
 import Controller
+import UI
 
 characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
-actions = ['Income', 'Foreign Aid', 'Coup', 'Tax', 'Assassinate', 'Exchange', 'Steal']
-counteractions = ['Block Foreign Aid', 'Block Stealing', 'Block Assassination']
 
 
 class State:
@@ -13,22 +12,19 @@ class State:
 		self.deck = []
 		self.bank = Bank()
 
-	def initializeGame(self, numPlayers):
+	def initializeGame(self, names):
 		
-		# Add 3 of each card to deck, and then shuffle
+		# Add 3 of each cards to deck, and then shuffle
 		for character in characters:
 			for i in range(3):
 				self.deck.append(Card(character = character))
 
 		shuffle(self.deck)
 
-		# Add numPlayers players
-		for i in range(numPlayers):
+		# Add names players
+		for name in names:
 			
 			player = Player()
-			s = "Enter Player " + str(i+1) + "'s Name\n"
-			name = raw_input(s)
-
 			player.name = name
 			player.handler.state = self
 
@@ -40,7 +36,7 @@ class State:
 		
 		return
 
-	def GameOver(self):
+	def CheckGameOver(self):
 		# Game is not over if two players have influence
 		firstPlayer = False
 		for player in self.players:
@@ -48,20 +44,20 @@ class State:
 				if firstPlayer:
 					return False
 				firstPlayer = True
+				winner = player
 				
+		UI.GameOverScreen(self,winner)
 		return True
 
+
 	def run(self):		
-		while not self.GameOver():
+		while not self.CheckGameOver():
 			for player in self.players:
-				if player.influence:
-					print '#########################################'
-					print " 	It is ", player.name, "'s turn!"					
-					print '#########################################'
+				if player.influence:									
 					player.handler.TakeTurn(self)
 
-		print "Game Over"
-	
+		return
+			
 	# doer attempts to take amount of money from target -(could be bank or another player)
 	# use for income, tax, FA, steal
 	# returns true if target has enough money
@@ -71,6 +67,7 @@ class State:
 			giver.cash -= amount
 			return True
 
+		# debug info
 		print 'Giver does not have enough money'
 		return False
 		
@@ -128,7 +125,7 @@ class State:
 			self.ShuffleIntoDeck(action.doer, cardsToDrop)
 		
 		elif(action.name == 'Assassinate'): 
-			self.ExchangeMoney(action.doer,self.bank,3)
+			self.ExchangeMoney(self.bank,action.doer,3)
 
 			cardToReveal = action.target.handler.DecideCardToFlip()
 			self.RevealCard(action.target, cardToReveal)
@@ -158,20 +155,11 @@ class Bank:
 	def __init__(self):
 		self.cash = 50
 
-
-def StartMenu():
-	print '##################################################################'
-	print '		WELCOME TO THE COUP ARENA'
-	print '##################################################################'
-	print '\nHow many players??'
-	number = Controller.ReadIntInput('Choose Between 2-6 \n',[2,3,4,5,6])
-	return number
-
 #called at run-time
 def main():
-	numPlayers = StartMenu()
+	names = UI.StartMenu()
 	state = State()
-	state.initializeGame(numPlayers)
+	state.initializeGame(names)
 	state.run()
 	return
 

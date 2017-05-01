@@ -1,4 +1,8 @@
 # This is supposed to be a prototype for the different kinds of Controlleres i.e. AI bot, Learner Bot, or Human Controller
+import UI
+
+
+
 class Action:
 	def __init__(self, n, ib, ic, it, c=0, bb=None,ac=None):
 		self.name = n
@@ -21,6 +25,12 @@ actions = [
 			Action('Coup', False, False, True,7)
 			]
 
+characters = [
+				'Duke'
+				'Captain'
+				
+			]
+
 class Controller:
 	def __init__(self, player, state=None):
 		self.player = player
@@ -33,8 +43,7 @@ class Controller:
 		
 		action = self.DecideAction(state,availableActions)
 		
-		response = self.AnnounceAction(action, state.players)
-		
+		response = self.AnnounceAction(action, state.players)		
 
 		if (response[0] == 'Challenge'):
 			#if you do have the card in your hand
@@ -57,15 +66,15 @@ class Controller:
 	#returns action
 	def DecideAction(self, state, availableActions):
 		# Query user for action
-		
 		# Display Board State
-		DisplayBoardState(state, self.player)
-		action = DisplayOptions('\nAvailable Actions:',availableActions,True)
+		UI.DisplayBoardState(state,self.player)
+		#DisplayBoardState(state, self.player)
+		action = UI.DisplayOptions('Available Actions:',availableActions,True)
 		action.doer = self.player
 
 		# If the action has a target, get it
 		if action.isTargetable:
-			action.target = DisplayOptions('\nAvailable Targets:',state.players,True,[self.player]+self.state.deadPlayers)
+			action.target = UI.DisplayOptions('Available Targets:',state.players,True,[self.player]+self.state.deadPlayers)
 
 		return action
 
@@ -84,11 +93,11 @@ class Controller:
 			if self.player.cash >= each.cost:
 				availableActions.append(each)
 		
-		if self.state.bank < 3:
+		if self.state.bank.cash < 3:
 			availableActions.remove(actions[2])
-		if self.state.bank < 2:
+		if self.state.bank.cash < 2:
 			availableActions.remove(actions [1])
-		if self.state.bank < 1:
+		if self.state.bank.cash < 1:
 			availableActions.remove(actions[0])
 
 		for each in self.state.players:
@@ -106,10 +115,12 @@ class Controller:
 
 	def DecideCardToFlip(self):
 		p = self.player.name+', Flip a Card!'
-		return DisplayOptions(p,self.player.hand,True,self.player.deadCards)
+		return UI.DisplayOptions(p,self.player.hand,True,self.player.deadCards)
 
 	# tells other players intended action
 	def AnnounceAction(self,action,players):
+		if UI.AutoAllow():
+			return 'Allow', None
 		for player in players:
 			if (player == self.player or player.influence == 0):
 				continue
@@ -121,6 +132,8 @@ class Controller:
 
 	# returns whether Block is successful
 	def AnnounceBlock(self,state,action,card, blocker):
+		if UI.AutoAllow():
+			return True
 		for player in state.players:
 			if player == blocker or player.influence == 0:
 				continue
@@ -152,19 +165,26 @@ class Controller:
 		return False		
 
 	def DecideToChallengeBlock(self, action, blocker, card):
+		print '\n************'
+		print self.player.name, "'s Response"
+		print '************'
 		p= blocker.name+ ' wants to block '+ action.doer.name+"'s "+ action.name+ ' with '+ card
 		responses = ["Allow", "Challenge"]
 		
-		if DisplayOptions(p,responses,False) == 'Challenge':
+		#UI.DisplayBoardState(self.state,self.players)
+		if UI.DisplayOptions(p,responses,False) == 'Challenge':
 			return True
 		return False
 		
 
 	# returns Allow, Challenge, or Card to block with
 	def DecideToCounterAction(self,action):
+		'''
 		print '\n************'
 		print self.player.name, "'s Response"
 		print '************'
+		'''
+		UI.DisplayBoardState(self.state,self.player)
 		p = action.doer.name+ ' wants to '+ action.name
 		if action.target != None:
 			p+= ' /// TARGET == '+ action.target.name
@@ -179,76 +199,19 @@ class Controller:
 
 		#p= 'How do you want to respond ' + self.player.name + ' ??'
 		
-		response = DisplayOptions(p,responses, False)
+		response = UI.DisplayOptions(p,responses, False)
 		if response == 'Block':			
-			response = DisplayOptions("Block With?",action.blockableBy,False)
+			response = UI.DisplayOptions("Block With?",action.blockableBy,False)
 
 		return response
 
 	# Player selects cards to put back into deck after exchanging
 	def DecideCardsToKeep(self):
 		
-		card1 = DisplayOptions('Get rid of One Card:', self.player.hand,True, self.player.deadCards)
+		card1 = UI.DisplayOptions('Get rid of One Card:', self.player.hand,True, self.player.deadCards)
 		 
-		card2 = DisplayOptions('Get rid of Another Card:',self.player.hand,True,self.player.deadCards+[card1])
+		card2 = UI.DisplayOptions('Get rid of Another Card:',self.player.hand,True,self.player.deadCards+[card1])
 		
 		return [card1,card2]
 
 
-# isObj = true if object array
-def DisplayOptions(prompt,array, isObj, elementsToExclude=[]):
-	count = 0
-	indicesPrinted=[]
-	print prompt
-	for each in array:		
-		count +=1
-		if each not in elementsToExclude:			
-			if isObj:
-				print count, ' ', each.name
-			else:
-				print count, ' ', each
-			indicesPrinted.append(count)
-		
-
-	index = ReadIntInput('Choose a Number\n', indicesPrinted)
-	return array[index-1]
-
-def DisplayBoardState(state, current):
-	#print '\nBank = ', state.bank.cash
-	PrintCoins(state.bank.cash,10)
-	for each in state.players:
-		print '\n ', each.name
-		print '********'
-		for card in each.hand:
-			if card.dead:
-				print 'X - ', card.name 
-			elif each == current:
-				print '? - ', card.name
-			else:
-				print '?'
-
-		PrintCoins(each.cash,5)
-	return
-
-def ReadIntInput(output, possibleInputs):
-	while True:
-		try:
-			ret = int(raw_input(output))
-			if ret in possibleInputs:
-				return ret
-			else:
-				print 'Choose a Valid Number'
-
-		except ValueError:
-			print 'Enter a Number -- Try Again'
-
-def PrintCoins(num,delim):
-	s=''
-	for i in range(num):
-		if i != 0 and i % delim == 0:
-			s+='\n'
-		s +='o'
-		
-	print s
-
-	return
