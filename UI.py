@@ -18,16 +18,6 @@ def ReadIntInput(output, possibleInputs):
 		except ValueError:
 			print 'Enter a Number -- Try Again'
 
-def BuildCoinString(coinsleft,delim):	
-	if coinsleft > delim:
-		return 'o' * delim
-	
-	return 'o' * coinsleft
-
-
-
-
-
 # state.players index : (row,column)
 TableMapping = {
 				0:(0,1),
@@ -39,7 +29,7 @@ TableMapping = {
 				}
 ROWS = 3
 COLUMNS = 5
-LINES = 6	# number of lines per block
+LINES = 7	# number of lines per block
 
 
 def DisplayTable(state,currentPlayer):
@@ -66,14 +56,18 @@ def DisplayTable(state,currentPlayer):
 			colNum = 0
 			for col in row:
 				#center player names
-				if ((rowNum,colNum) in playerPositions) and lineNum == 0:
-					form = '{:^14}'
+				if ((rowNum,colNum) in playerPositions):
+					if lineNum == 0:
+						form = GetFormat('14',True)
+					elif lineNum == 1:
+						pass
+						#form = GetFormat('14',False,True)
 				#shrink center column
 				elif colNum == 2:
-					form = '{:<14}'
+					form = GetFormat('10')
 				#right align everything else
 				else:
-					form = '{:<14}'
+					form = GetFormat('14')
 				
 				line += form.format(col[lineNum])
 				colNum+=1
@@ -83,6 +77,18 @@ def DisplayTable(state,currentPlayer):
 
 	return
 
+def GetFormat(blockSize,isCentered=False,isFilled=False):
+	form = '{:'
+	if isFilled:
+		form += '-'
+	if isCentered:
+		form += '^'
+	else:
+		form += '<'
+	form += blockSize + '}'
+	
+	return form
+
 def FillBlock(block,player,isCurrentPlayer):
 	lines = []
 	
@@ -91,6 +97,9 @@ def FillBlock(block,player,isCurrentPlayer):
 		lines.append('--> ' + player.name + ' <--')
 	else:
 		lines.append(player.name)
+
+	# -filled dash line
+	lines.append('')
 
 	#CARDS
 	for card in player.hand:
@@ -169,7 +178,7 @@ def GameOverScreen(state):
 		if each.influence >0:
 			winner = each
 			break
-	DisplayBoardState(state,winner)
+	DisplayTable(state,winner)
 	print 'Game Over'
 	print winner.name, " WINS !!!"
 	print 

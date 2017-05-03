@@ -25,11 +25,6 @@ actions = [
 			Action('Coup', False, False, True,7)
 			]
 
-characters = [
-				'Duke'
-				'Captain'
-				
-			]
 
 class Controller:
 	def __init__(self, player, state=None):
@@ -42,6 +37,9 @@ class Controller:
 		availableActions = self.DetermineAvailableActions()
 		
 		action = self.DecideAction(state,availableActions)
+
+		if action.cost > 0:
+			self.state.ExchangeMoney(self.state.bank, self.player, action.cost)
 		
 		response = self.AnnounceAction(action, state.players)		
 

@@ -111,7 +111,6 @@ class State:
 			self.ExchangeMoney(action.doer,self.bank, 2)
 		
 		elif(action.name == 'Coup'):
-			self.ExchangeMoney(self.bank, action.doer, 7)
 			cardToReveal = action.target.handler.DecideCardToFlip()
 			self.RevealCard(action.target, cardToReveal)
 		
@@ -126,9 +125,7 @@ class State:
 			cardsToDrop = action.doer.handler.DecideCardsToKeep()
 			self.ShuffleIntoDeck(action.doer, cardsToDrop)
 		
-		elif(action.name == 'Assassinate'): 
-			self.ExchangeMoney(self.bank,action.doer,3)
-
+		elif(action.name == 'Assassinate'):
 			cardToReveal = action.target.handler.DecideCardToFlip()
 			self.RevealCard(action.target, cardToReveal)
 
