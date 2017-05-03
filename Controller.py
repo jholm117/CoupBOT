@@ -32,48 +32,32 @@ class Controller:
 		self.state = state
 		
 
-	# called on player's turn 
-	def TakeTurn(self, state):
+	# called on player's turn -- main function
+	def TakeTurn(self):
 		availableActions = self.DetermineAvailableActions()
 		
-		action = self.DecideAction(state,availableActions)
+		action = self.DecideAction(availableActions)
 
 		if action.cost > 0:
 			self.state.ExchangeMoney(self.state.bank, self.player, action.cost)
 		
-		response = self.AnnounceAction(action, state.players)		
+		response = self.AnnounceAction(action)		
 
 		if (response[0] == 'Challenge'):
 			#if you do have the card in your hand
-			if self.RespondToChallenge(action.associatedCard,response[1],state):
-				state.DoAction(action)
+			if self.RespondToChallenge(action.associatedCard,response[1]):
+				self.state.DoAction(action)
 
 		
 
 		elif(response[0] == 'Allow'):
-			state.DoAction(action)
+			self.state.DoAction(action)
 			
 		# blocked -- response = card,blocker
-		elif not self.AnnounceBlock(state,action,response[0],response[1]):
-			state.DoAction(action)
+		elif not self.AnnounceBlock(action,response[0],response[1]):
+			self.state.DoAction(action)
 			
 		return
-
-
-
-	#returns action
-	def DecideAction(self, state, availableActions):
-		# Query user for action
-		# Display Board State
-		UI.DisplayTable(state,self.player)
-		action = UI.DisplayOptions('Available Actions:',availableActions,True)
-		action.doer = self.player
-
-		# If the action has a target, get it
-		if action.isTargetable:
-			action.target = UI.DisplayOptions('Available Targets:',state.players,True,[self.player]+self.state.deadPlayers)
-
-		return action
 
 		# this is bad -- should optimize this
 	def DetermineAvailableActions(self):		
@@ -110,15 +94,12 @@ class Controller:
 
 
 
-	def DecideCardToFlip(self):
-		p = self.player.name+', Flip a Card!'
-		return UI.DisplayOptions(p,self.player.hand,True,self.player.deadCards)
 
 	# tells other players intended action
-	def AnnounceAction(self,action,players):
+	def AnnounceAction(self,action):
 		if UI.AutoAllow():
 			return 'Allow', None
-		for player in players:
+		for player in self.state.players:
 			if (player == self.player or player.influence == 0):
 				continue
 			response = player.handler.DecideToCounterAction(action) 
@@ -128,38 +109,57 @@ class Controller:
 		return response, None
 
 	# returns whether Block is successful
-	def AnnounceBlock(self,state,action,card, blocker):
+	def AnnounceBlock(self,action,card, blocker):
 		if UI.AutoAllow():
 			return True
-		for player in state.players:
+		for player in self.state.players:
 			if player == blocker or player.influence == 0:
 				continue
 			else:				
 				if player.handler.DecideToChallengeBlock(action, blocker, card):
-					return blocker.handler.RespondToChallenge(card, player, state)
+					return blocker.handler.RespondToChallenge(card, player)
 		return True
 
 
 
 
 	# Called when challenger challenges self's action -- returns True if self was not lying
-	def RespondToChallenge(self, claimedCard, challenger, state):
+	def RespondToChallenge(self, claimedCard, challenger):
 		for card in self.player.hand:
 			if claimedCard == card.name and not card.dead:
 				#Player wasn't lying -- Action successful
 				print challenger.name, ' incorrectly challenged ', self.player.name, ' !!!\n'
 				temp = challenger.handler.DecideCardToFlip()
-				state.RevealCard(challenger, temp)
-				state.ShuffleIntoDeck(self.player, [card])
-				state.Draw(self.player, 1)
+				self.state.RevealCard(challenger, temp)
+				self.state.ShuffleIntoDeck(self.player, [card])
+				self.state.Draw(self.player, 1)
 										
 				return True
 		
 		#player was lying -- Action unsuccessful
 		print challenger.name, ' correctly challenged ', self.player.name, ' !!!\n'
 		temp = self.player.handler.DecideCardToFlip()
-		state.RevealCard(self.player, temp)
-		return False		
+		self.state.RevealCard(self.player, temp)
+		return False
+
+			#returns action
+	def DecideAction(self, availableActions):
+		# Query user for action
+		# Display Board State
+		UI.DisplayTable(self.state,self.player)
+		action = UI.DisplayOptions('Available Actions:',availableActions,True)
+		action.doer = self.player
+
+		# If the action has a target, get it
+		if action.isTargetable:
+			action.target = UI.DisplayOptions('Available Targets:',self.state.players,True,[self.player]+self.state.deadPlayers)
+
+		return action
+
+
+	def DecideCardToFlip(self):
+		p = self.player.name+', Flip a Card!'
+		return UI.DisplayOptions(p,self.player.hand,True,self.player.deadCards)
 
 	def DecideToChallengeBlock(self, action, blocker, card):
 		UI.DisplayTable(self.state,self.player)

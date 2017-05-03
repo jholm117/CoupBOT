@@ -55,7 +55,7 @@ class State:
 				if self.CheckGameOver():
 					return
 				if player.influence:									
-					player.handler.TakeTurn(self)
+					player.handler.TakeTurn()
 
 		return
 
