@@ -29,7 +29,7 @@ TableMapping = {
 				}
 ROWS = 3
 COLUMNS = 5
-LINES = 7	# number of lines per block
+LINES = 9	# number of lines per block
 
 
 def DisplayTable(state,currentPlayer):
@@ -122,7 +122,13 @@ def FillBlock(block,player,isCurrentPlayer):
 	return
 
 def AddBankToTable(block,bank):
-	lines = AddCoinsToList(bank,10,[])
+	lines = []
+	blankLinesToAdd = (LINES - 5)/2
+	for x in range(blankLinesToAdd):
+		lines.append('')
+	lines = AddCoinsToList(bank,10,lines)
+	
+	
 	index=0
 	for line in lines:
 		block[index] = line

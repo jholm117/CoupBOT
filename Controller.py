@@ -34,13 +34,16 @@ class Controller:
 
 	# called on player's turn -- main function
 	def TakeTurn(self):
+		# get possible actions
 		availableActions = self.DetermineAvailableActions()
 		
+		#choose an action
 		action = self.DecideAction(availableActions)
 
-		if action.cost > 0:
-			self.state.ExchangeMoney(self.state.bank, self.player, action.cost)
+		#pay money if applicable
+		self.PayMoney(action)
 		
+		# announce your choice to the table
 		response = self.AnnounceAction(action)		
 
 		if (response[0] == 'Challenge'):
@@ -64,41 +67,40 @@ class Controller:
 		
 		#must coup above 10 coins
 		if self.player.cash >= 10:
-			return [actions['Coup']]
+			return ['Coup']
 
 		availableActions = []
 
 		if self.state.bank.cash >= 1:
-			availableActions.append(actions['Income'])
+			availableActions.append('Income')
 		if self.state.bank.cash >= 2:
-			availableActions.append(actions['Foreign Aid'])
+			availableActions.append('Foreign Aid')
 		if self.state.bank.cash >= 3:
-			availableActions.append(actions['Tax'])
+			availableActions.append('Tax')
 
 		for each in self.state.players:
 			if each == self.player:
 				continue
 			if each.cash >= 2:
-				availableActions.append(actions['Steal'])
+				availableActions.append('Steal')
 				break
 
-		availableActions.append(actions['Exchange'])
+		availableActions.append('Exchange')
 
 		if self.player.cash >= 3:
-			availableActions.append(actions['Assassinate'])
+			availableActions.append('Assassinate')
 		if self.player.cash >=10:
-			availableActions.append(action['Coup'])
+			availableActions.append('Coup')
 
 		return availableActions
 
 
 
-
-
-	# tells other players intended action
+	# tells other players intended action -- should return if action is successful
 	def AnnounceAction(self,action):
 		if UI.AutoAllow():
 			return 'Allow', None
+
 		for player in self.state.players:
 			if (player == self.player or player.influence == 0):
 				continue
@@ -120,7 +122,11 @@ class Controller:
 					return blocker.handler.RespondToChallenge(card, player)
 		return True
 
-
+		#pay up
+	def PayMoney(self,action):
+		if action.cost > 0:
+			self.state.ExchangeMoney(self.state.bank,self.player,action.cost)
+		return
 
 
 	# Called when challenger challenges self's action -- returns True if self was not lying
@@ -142,12 +148,21 @@ class Controller:
 		self.state.RevealCard(self.player, temp)
 		return False
 
-			#returns action
+
+	'''
+		All Decision Functions Below
+
+	'''
+
+
+	#returns action -- Called when self begins turn
 	def DecideAction(self, availableActions):
 		# Query user for action
 		# Display Board State
 		UI.DisplayTable(self.state,self.player)
-		action = UI.DisplayOptions('Available Actions:',availableActions,True)
+
+		actionKey = UI.DisplayOptions('Available Actions:',availableActions,False)
+		action = actions[actionKey]
 		action.doer = self.player
 
 		# If the action has a target, get it
@@ -156,11 +171,12 @@ class Controller:
 
 		return action
 
-
+	#Called when self loses influence
 	def DecideCardToFlip(self):
 		p = self.player.name+', Flip a Card!'
 		return UI.DisplayOptions(p,self.player.hand,True,self.player.deadCards)
 
+	# Called when blocker attempts to counter an action
 	def DecideToChallengeBlock(self, action, blocker, card):
 		UI.DisplayTable(self.state,self.player)
 		p= blocker.name+ ' wants to block '+ action.doer.name+"'s "+ action.name+ ' with '+ card
