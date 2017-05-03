@@ -15,15 +15,15 @@ class Action:
 		self.blockableBy = bb
 		self.cost = c
 
-actions = [
-			Action('Income', False, False, False),
-			Action('Foreign Aid', True, False, False, 0, ['Duke']),
-			Action('Tax', False, True, False, None, 0, 'Duke'),
-			Action('Assassinate', True, True, True, 3,['Contessa'], 'Assassin'),
-			Action('Steal', True, True, True,0,['Captain','Ambassador'], 'Captain'),
-			Action('Exchange', False, True, False,0, None,'Ambassador'),
-			Action('Coup', False, False, True,7)
-			]
+actions = {
+			'Income' : 		Action('Income', False, False, False),
+			'Foreign Aid' : Action('Foreign Aid', True, False, False, 0, ['Duke']),
+			'Tax' : 		Action('Tax', False, True, False, None, 0, 'Duke'),
+			'Assassinate' : Action('Assassinate', True, True, True, 3,['Contessa'], 'Assassin'),
+			'Steal' : 		Action('Steal', True, True, True,0,['Captain','Ambassador'], 'Captain'),
+			'Exchange'  :	Action('Exchange', False, True, False,0, None,'Ambassador'),
+			'Coup' : 		Action('Coup', False, False, True,7)
+			}
 
 
 class Controller:
@@ -80,30 +80,30 @@ class Controller:
 		
 		#must coup above 10 coins
 		if self.player.cash >= 10:
-			return [actions[6]]
+			return [actions['Coup']]
 
-		#else return all actions that self can afford
 		availableActions = []
-		#availableActions.append(actions[5])	# Exchange
 
-		for each in actions:
-			if self.player.cash >= each.cost:
-				availableActions.append(each)
-		
-		if self.state.bank.cash < 3:
-			availableActions.remove(actions[2])
-		if self.state.bank.cash < 2:
-			availableActions.remove(actions [1])
-		if self.state.bank.cash < 1:
-			availableActions.remove(actions[0])
+		if self.state.bank.cash >= 1:
+			availableActions.append(actions['Income'])
+		if self.state.bank.cash >= 2:
+			availableActions.append(actions['Foreign Aid'])
+		if self.state.bank.cash >= 3:
+			availableActions.append(actions['Tax'])
 
 		for each in self.state.players:
 			if each == self.player:
 				continue
 			if each.cash >= 2:
-				return availableActions
+				availableActions.append(actions['Steal'])
+				break
 
-		availableActions.remove(actions[4])
+		availableActions.append(actions['Exchange'])
+
+		if self.player.cash >= 3:
+			availableActions.append(actions['Assassinate'])
+		if self.player.cash >=10:
+			availableActions.append(action['Coup'])
 
 		return availableActions
 
