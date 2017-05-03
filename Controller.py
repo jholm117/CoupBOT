@@ -67,8 +67,7 @@ class Controller:
 	def DecideAction(self, state, availableActions):
 		# Query user for action
 		# Display Board State
-		UI.DisplayBoardState(state,self.player)
-		#DisplayBoardState(state, self.player)
+		UI.DisplayTable(state,self.player)
 		action = UI.DisplayOptions('Available Actions:',availableActions,True)
 		action.doer = self.player
 
@@ -148,7 +147,7 @@ class Controller:
 	# Called when challenger challenges self's action -- returns True if self was not lying
 	def RespondToChallenge(self, claimedCard, challenger, state):
 		for card in self.player.hand:
-			if claimedCard == card.name:
+			if claimedCard == card.name and not card.dead:
 				#Player wasn't lying -- Action successful
 				print challenger.name, ' incorrectly challenged ', self.player.name, ' !!!\n'
 				temp = challenger.handler.DecideCardToFlip()
@@ -165,13 +164,9 @@ class Controller:
 		return False		
 
 	def DecideToChallengeBlock(self, action, blocker, card):
-		print '\n************'
-		print self.player.name, "'s Response"
-		print '************'
+		UI.DisplayTable(self.state,self.player)
 		p= blocker.name+ ' wants to block '+ action.doer.name+"'s "+ action.name+ ' with '+ card
 		responses = ["Allow", "Challenge"]
-		
-		#UI.DisplayBoardState(self.state,self.players)
 		if UI.DisplayOptions(p,responses,False) == 'Challenge':
 			return True
 		return False
@@ -179,12 +174,7 @@ class Controller:
 
 	# returns Allow, Challenge, or Card to block with
 	def DecideToCounterAction(self,action):
-		'''
-		print '\n************'
-		print self.player.name, "'s Response"
-		print '************'
-		'''
-		UI.DisplayBoardState(self.state,self.player)
+		UI.DisplayTable(self.state,self.player)
 		p = action.doer.name+ ' wants to '+ action.name
 		if action.target != None:
 			p+= ' /// TARGET == '+ action.target.name
@@ -207,7 +197,7 @@ class Controller:
 
 	# Player selects cards to put back into deck after exchanging
 	def DecideCardsToKeep(self):
-		
+		UI.DisplayTable(self.state,self.player)
 		card1 = UI.DisplayOptions('Get rid of One Card:', self.player.hand,True, self.player.deadCards)
 		 
 		card2 = UI.DisplayOptions('Get rid of Another Card:',self.player.hand,True,self.player.deadCards+[card1])

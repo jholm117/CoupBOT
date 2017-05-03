@@ -18,120 +18,117 @@ def ReadIntInput(output, possibleInputs):
 		except ValueError:
 			print 'Enter a Number -- Try Again'
 
-def PrintCoins(num,delim):
-	s=''
-	for i in range(num):
-		if i != 0 and i % delim == 0:
-			s+='\n'
-		s +='o'
-		
-	print s
-
-	return
-
-def CoinStrBuilder(num,delim,row,array):
-	if row != 1:
-		return num
-	if num <1:
-		array.insert(1,'')
-		return 0
-
-	s=''
-	i=0	
-	for i in range(1,num):
-		if (i > delim):
-			i-=1
-			break
-		s+='o'
-	num -= i
-	array.insert(1,s)
-	return num
+def BuildCoinString(coinsleft,delim):	
+	if coinsleft > delim:
+		return 'o' * delim
+	
+	return 'o' * coinsleft
 
 
-#lost cause --jk
-def BuildTable(state,current):
+
+
+
+# state.players index : (row,column)
+TableMapping = {
+				0:(0,1),
+				1:(0,3),
+				2:(1,4),
+				3:(2,3),
+				4:(2,1),
+				5:(1,0)
+				}
+ROWS = 3
+COLUMNS = 5
+LINES = 6	# number of lines per block
+
+
+def DisplayTable(state,currentPlayer):
 	clear()
-	print '#########################################'
-	print " 	It is ", current.name, "'s turn!"					
-	print '#########################################'
+	table = [ [ [ '' for line in range(LINES) ] for col in range(COLUMNS)] for row in range(ROWS)]
+	index = 0
+	for player in state.players:
+		row = TableMapping[index][0]
+		col = TableMapping[index][1]
+		block = table[row][col]
 
-	numPlayers = len(state.players)
-	s= ''
-	playersToPrint= []
+		FillBlock(block,player,player==currentPlayer)
 
-	# i = 0, 1, 2
-	for row in range(3): 
-		index = row*2
-		playersToPrint= []
-		if index < numPlayers:
-			playersToPrint.append(state.players[index])
-			if index+1 < numPlayers:
-				playersToPrint.append(state.players[index+1])
-		elif row == 2:
-			break
+		index += 1
+	AddBankToTable(table[1][2],state.bank.cash)
+	#FormatTable(table)
+	#print lines of table
+	playerPositions = TableMapping.values()
 	
-		array=[]
-		opt = row % 2 == 0
-		for each in playersToPrint:
-			array += [each.name]
-		
-		
-		coinsleft = state.bank.cash
-		coinsleft = CoinStrBuilder(coinsleft,10,row,array)		
-			
-
-		print_row(array,opt)
-	
-		
-		for k in range(2):
-			array=[]
-			for each in playersToPrint:
-				card = each.hand[k]
-				if card.dead:
-					array += ['X '+ card.name] 
-				elif each == current:
-
-				 	array += ['? ' + card.name]
+	rowNum = 0
+	for row in table:
+		for lineNum in range(LINES):
+			line = ''
+			colNum = 0
+			for col in row:
+				#center player names
+				if ((rowNum,colNum) in playerPositions) and lineNum == 0:
+					form = '{:^14}'
+				#shrink center column
+				elif colNum == 2:
+					form = '{:<14}'
+				#right align everything else
 				else:
-					array += ['?']
-			coinsleft = CoinStrBuilder(coinsleft,10,row,array)
-			print_row(array,opt)
+					form = '{:<14}'
+				
+				line += form.format(col[lineNum])
+				colNum+=1
 
+			print line
+		rowNum += 1
 
-		print ''
-		'''
-		# Cards
-		for k in range(2):
-			for each in playersToPrint:
-				card = each.hand[k]
-				if card.dead:
-					s+= 'X ', card.name 
-				else:
-				 	s+= '? '
-				 	if each == current:
-				 		s += card.name
-				s+='	'
-			s+='\n'
-		
-		s+='\n'
-		'''
-		#for each in playersToPrint:
 	return
 
-def print_row(strArray,optionalOffset =False):
-	s=''
-	t=()
-	if optionalOffset:
-		s+="%-6s"
-		t+=('',)
-	for each in strArray:
-		s+= "%-12s "
-		t += (each,)
-	print s % t
-	#print " %-15s, %-15s, %15s" % (str1,str2,str3)
+def FillBlock(block,player,isCurrentPlayer):
+	lines = []
+	
+	#NAME
+	if isCurrentPlayer:
+		lines.append('--> ' + player.name + ' <--')
+	else:
+		lines.append(player.name)
+
+	#CARDS
+	for card in player.hand:
+		if card.dead:
+			lines.append('X '+ card.name)
+		#show current player cards in hand
+		elif isCurrentPlayer:
+			lines.append('? '+ card.name)
+		else:
+			lines.append('?')
+
+	#MONEY
+	AddCoinsToList(player.cash,5,lines)
+
+
+	index = 0
+	for line in lines:
+		block[index] = line
+		index+=1
 	return
 
+def AddBankToTable(block,bank):
+	lines = AddCoinsToList(bank,10,[])
+	index=0
+	for line in lines:
+		block[index] = line
+		index +=1
 
+# appends lines of delim coins to array
+def AddCoinsToList(coinsLeft,delim,array):
+	while (coinsLeft):
+		if coinsLeft >= delim:
+			array.append('o' * delim)
+			coinsLeft -= delim
+		else:
+			array.append('o' * coinsLeft)
+			return array
+	return array
 
 # isObj = true if object array
 def DisplayOptions(prompt,array, isObj, elementsToExclude=[]):
@@ -151,31 +148,6 @@ def DisplayOptions(prompt,array, isObj, elementsToExclude=[]):
 	index = ReadIntInput('Choose a Number\n', indicesPrinted)
 	return array[index-1]
 
-def DisplayBoardState(state, current):
-	#print '\nBank = ', state.bank.cash
-	clear()
-	#print '####################################################################'
-	#print " 			",current.name#, "'s turn!"					
-	#print '#########################################'
-	PrintCoins(state.bank.cash,10)
-	for each in state.players:
-		print''
-		if each == current:
-			print '***', current.name,'***'
-		else:
-			print '   ', each.name
-		print '------------'
-		for card in each.hand:
-			if card.dead:
-				print 'X ', card.name 
-			elif each == current:
-				print '? ', card.name
-			else:
-				print '?'
-
-		PrintCoins(each.cash,5)
-	print ''
-	return
 
 def StartMenu():
 	clear()
@@ -192,16 +164,17 @@ def StartMenu():
 		names.append(name)
 	return names
 
-def GameOverScreen(state,winner):
+def GameOverScreen(state):
+	for each in state.players:
+		if each.influence >0:
+			winner = each
+			break
 	DisplayBoardState(state,winner)
 	print 'Game Over'
 	print winner.name, " WINS !!!"
 	print 
 	response = DisplayOptions('Play Again?',['Yes','No'],False)
-	if response =='Yes':
-		#Play()
-		exit()
-	else:
+	if response =='No':
 		clear()
 		exit()
 	return

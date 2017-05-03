@@ -40,24 +40,25 @@ class State:
 		# Game is not over if two players have influence
 		firstPlayer = False
 		for player in self.players:
-			if player.influence:
+			if player.influence > 0:
 				if firstPlayer:
 					return False
 				firstPlayer = True
-				winner = player
-				
-		UI.GameOverScreen(self,winner)
+				#winner = player			
+		
 		return True
 
 
 	def run(self):		
-		while not self.CheckGameOver():
+		while True:			
 			for player in self.players:
+				if self.CheckGameOver():
+					return
 				if player.influence:									
 					player.handler.TakeTurn(self)
 
 		return
-			
+
 	# doer attempts to take amount of money from target -(could be bank or another player)
 	# use for income, tax, FA, steal
 	# returns true if target has enough money
@@ -69,6 +70,7 @@ class State:
 
 		# debug info
 		print 'Giver does not have enough money'
+
 		return False
 		
 	# move card from hand to deadCards array
@@ -110,7 +112,7 @@ class State:
 		
 		elif(action.name == 'Coup'):
 			self.ExchangeMoney(self.bank, action.doer, 7)
-			cardToReveal = action.target.handler.DecideCardToFlip()		# need to write this function
+			cardToReveal = action.target.handler.DecideCardToFlip()
 			self.RevealCard(action.target, cardToReveal)
 		
 		elif(action.name == 'Tax'):
@@ -131,7 +133,7 @@ class State:
 			self.RevealCard(action.target, cardToReveal)
 
 		
-		print action.name, ' Successful!\n'
+		#print action.name, ' Successful!\n'
 		return
 
 
@@ -144,7 +146,7 @@ class Player:
 		self.deadCards = []
 		self.cash = 0
 		self.influence = 2
-		self.handler = Controller.Controller(self,)
+		self.handler = Controller.Controller(self)
 
 class Card:
 	def __init__(self, character = None):
@@ -155,13 +157,18 @@ class Bank:
 	def __init__(self):
 		self.cash = 50
 
-#called at run-time
-def main():
+def Play():
 	names = UI.StartMenu()
 	state = State()
 	state.initializeGame(names)
 	state.run()
+	UI.GameOverScreen(state)
 	return
+
+#called at run-time
+def main():
+	while True:
+		Play()
 
 
 if __name__=="__main__":
