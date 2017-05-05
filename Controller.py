@@ -1,6 +1,6 @@
 # This is supposed to be a prototype for the different kinds of Controlleres i.e. AI bot, Learner Bot, or Human Controller
 import UI
-
+import game
 
 
 class Action:
@@ -14,6 +14,7 @@ class Action:
 		self.associatedCard = ac
 		self.blockableBy = bb
 		self.cost = c
+		self.cardToCoup = None
 
 actions = {
 			'Income' : 		Action('Income', False, False, False),
@@ -62,7 +63,6 @@ class Controller:
 			
 		return
 
-		# this is bad -- should optimize this
 	def DetermineAvailableActions(self):		
 		
 		#must coup above 10 coins
@@ -168,6 +168,10 @@ class Controller:
 		# If the action has a target, get it
 		if action.isTargetable:
 			action.target = UI.DisplayOptions('Available Targets:',self.state.players,True,[self.player]+self.state.deadPlayers)
+
+		#choose target's card to coup
+		if actionKey == 'Coup':
+			action.cardToCoup = UI.DisplayOptions('Cards to Coup:',game.characters,False)
 
 		return action
 

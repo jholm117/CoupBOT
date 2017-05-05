@@ -111,8 +111,10 @@ class State:
 			self.ExchangeMoney(action.doer,self.bank, 2)
 		
 		elif(action.name == 'Coup'):
-			cardToReveal = action.target.handler.DecideCardToFlip()
-			self.RevealCard(action.target, cardToReveal)
+			for card in action.target.hand:
+				if not card.dead and action.cardToCoup == card.name:
+					self.RevealCard(action.target, card)
+					break
 		
 		elif(action.name == 'Tax'):
 			self.ExchangeMoney(action.doer, self.bank, 3)
