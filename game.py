@@ -1,5 +1,6 @@
 from random import shuffle
-import Controller
+#import controller
+import botController
 import UI
 
 characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
@@ -7,7 +8,7 @@ characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
 
 class State:
 	def __init__(self):
-		self.players = []
+		self.players = {}
 		self.deadPlayers = []
 		self.deck = []
 		self.bank = Bank()
@@ -24,11 +25,9 @@ class State:
 		# Add names players
 		for name in names:
 			
-			player = Player()
-			player.name = name
-			player.handler.state = self
+			player = Player(name,self)
 
-			self.players.append(player)				# add to list of players
+			self.players[name] = player				# add to list of players
 
 			self.ExchangeMoney(player, self.bank, 2)	# starting money
 
@@ -39,8 +38,8 @@ class State:
 	def CheckGameOver(self):
 		# Game is not over if two players have influence
 		firstPlayer = False
-		for player in self.players:
-			if player.influence > 0:
+		for name in self.players:
+			if self.players[name].influence > 0:
 				if firstPlayer:
 					return False
 				firstPlayer = True
@@ -50,13 +49,12 @@ class State:
 
 
 	def run(self):		
-		while True:			
-			for player in self.players:
+		while True:	
+			for name in self.players:
 				if self.CheckGameOver():
 					return
-				if player.influence:									
-					player.handler.TakeTurn()
-
+				if self.players[name].influence:									
+					self.players[name].handler.TakeTurn()
 		return
 
 	# doer attempts to take amount of money from target -(could be bank or another player)
@@ -77,7 +75,7 @@ class State:
 	def RevealCard(self, player, card):
 		player.influence -= 1
 		if player.influence < 1:
-			self.deadPlayers.append(player)
+			self.deadPlayers.append(player.name)
 			self.ExchangeMoney(self.bank,player,player.cash)
 
 		card.dead = True
@@ -138,14 +136,14 @@ class State:
 
 
 class Player:
-	def __init__(self):
-		self.name = None
+	def __init__(self,name,state):
+		self.name = name
 		self.type = None
 		self.hand = []
 		self.deadCards = []
 		self.cash = 0
 		self.influence = 2
-		self.handler = Controller.Controller(self)
+		self.handler = botController.BotController(self,state)
 
 class Card:
 	def __init__(self, character = None):

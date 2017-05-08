@@ -2,7 +2,6 @@
 import UI
 import game
 
-
 class Action:
 	def __init__(self, n, ib, ic, it, c=0, bb=None,ac=None):
 		self.name = n
@@ -28,7 +27,7 @@ actions = {
 
 
 class Controller:
-	def __init__(self, player, state=None):
+	def __init__(self, player, state):
 		self.player = player
 		self.state = state
 		
@@ -39,7 +38,7 @@ class Controller:
 		availableActions = self.DetermineAvailableActions()
 		
 		#choose an action
-		action = self.DecideAction(availableActions)
+		action = self.ChooseAction(availableActions)
 
 		#pay money if applicable
 		self.PayMoney(action)
@@ -78,10 +77,10 @@ class Controller:
 		if self.state.bank.cash >= 3:
 			availableActions.append('Tax')
 
-		for each in self.state.players:
-			if each == self.player:
+		for name in self.state.players:
+			if self.state.players[name] == self.player:
 				continue
-			if each.cash >= 2:
+			if self.state.players[name].cash >= 2:
 				availableActions.append('Steal')
 				break
 
@@ -89,11 +88,10 @@ class Controller:
 
 		if self.player.cash >= 3:
 			availableActions.append('Assassinate')
-		if self.player.cash >=10:
+		if self.player.cash >=7:
 			availableActions.append('Coup')
 
 		return availableActions
-
 
 
 	# tells other players intended action -- should return if action is successful
@@ -101,12 +99,12 @@ class Controller:
 		if UI.AutoAllow():
 			return 'Allow', None
 
-		for player in self.state.players:
-			if (player == self.player or player.influence == 0):
+		for name in self.state.players:
+			if (self.state.players[name] == self.player or self.state.players[name].influence == 0):
 				continue
-			response = player.handler.DecideToCounterAction(action) 
+			response = self.state.players[name].handler.DecideToCounterAction(action) 
 			if response != 'Allow':
-				return response, player
+				return response, self.state.players[name]
 
 		return response, None
 
@@ -114,12 +112,12 @@ class Controller:
 	def AnnounceBlock(self,action,card, blocker):
 		if UI.AutoAllow():
 			return True
-		for player in self.state.players:
-			if player == blocker or player.influence == 0:
+		for name in self.state.players:
+			if self.state.players[name] == blocker or self.state.players[name].influence == 0:
 				continue
 			else:				
-				if player.handler.DecideToChallengeBlock(action, blocker, card):
-					return blocker.handler.RespondToChallenge(card, player)
+				if self.state.players[name].handler.DecideToChallengeBlock(action, blocker, card):
+					return blocker.handler.RespondToChallenge(card, self.state.players[name])
 		return True
 
 		#pay up
@@ -153,25 +151,32 @@ class Controller:
 		All Decision Functions Below
 
 	'''
+	def Decide(self, availableOptions, prompt=None):
+		
+		UI.DisplayTable(self.state,self.player)
+		
+		choice = UI.DisplayOptions(prompt, availableOptions, False)
 
+		return choice
 
 	#returns action -- Called when self begins turn
-	def DecideAction(self, availableActions):
+	def ChooseAction(self, availableActions):
 		# Query user for action
 		# Display Board State
-		UI.DisplayTable(self.state,self.player)
-
-		actionKey = UI.DisplayOptions('Available Actions:',availableActions,False)
+		
+		actionKey = self.Decide(availableActions, 'Available Actions:')
 		action = actions[actionKey]
 		action.doer = self.player
 
 		# If the action has a target, get it
 		if action.isTargetable:
-			action.target = UI.DisplayOptions('Available Targets:',self.state.players,True,[self.player]+self.state.deadPlayers)
+			availableTargets = [name for name in self.state.players.keys() if name is not self.player.name]
+			targetKey = self.Decide(availableTargets, 'Available Targets:')
+			action.target = self.state.players[targetKey]
 
 		#choose target's card to coup
 		if actionKey == 'Coup':
-			action.cardToCoup = UI.DisplayOptions('Cards to Coup:',game.characters,False)
+			action.cardToCoup = self.Decide(game.characters,'Cards to Coup:')
 
 		return action
 
@@ -182,10 +187,13 @@ class Controller:
 
 	# Called when blocker attempts to counter an action
 	def DecideToChallengeBlock(self, action, blocker, card):
-		UI.DisplayTable(self.state,self.player)
+		
+
 		p= blocker.name+ ' wants to block '+ action.doer.name+"'s "+ action.name+ ' with '+ card
 		responses = ["Allow", "Challenge"]
-		if UI.DisplayOptions(p,responses,False) == 'Challenge':
+		
+
+		if self.Decide(responses,p) == 'Challenge':
 			return True
 		return False
 		

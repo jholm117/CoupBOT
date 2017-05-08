@@ -36,11 +36,12 @@ def DisplayTable(state,currentPlayer):
 	clear()
 	table = [ [ [ '' for line in range(LINES) ] for col in range(COLUMNS)] for row in range(ROWS)]
 	index = 0
-	for player in state.players:
+	for name in state.players:
 		row = TableMapping[index][0]
 		col = TableMapping[index][1]
 		block = table[row][col]
-
+		player = state.players[name]
+		
 		FillBlock(block,player,player==currentPlayer)
 
 		index += 1
@@ -149,7 +150,8 @@ def AddCoinsToList(coinsLeft,delim,array):
 def DisplayOptions(prompt,array, isObj, elementsToExclude=[]):
 	count = 0
 	indicesPrinted=[]
-	print prompt
+	if prompt != None:
+		print prompt
 	for each in array:		
 		count +=1
 		if each not in elementsToExclude:			
@@ -180,9 +182,9 @@ def StartMenu():
 	return names
 
 def GameOverScreen(state):
-	for each in state.players:
-		if each.influence >0:
-			winner = each
+	for name in state.players:
+		if state.players[name].influence >0:
+			winner = state.players[name]
 			break
 	DisplayTable(state,winner)
 	print 'Game Over'
