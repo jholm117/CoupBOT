@@ -34,11 +34,13 @@ class Controller:
 
 	# called on player's turn -- main function
 	def TakeTurn(self):
+		UI.DisplayTable(self.state,self.player)
 		# get possible actions
 		availableActions = self.DetermineAvailableActions()
 		
 		#choose an action
 		action = self.ChooseAction(availableActions)
+		print action.doer.name, " uses ", action.name
 
 		#pay money if applicable
 		self.PayMoney(action)
@@ -57,11 +59,16 @@ class Controller:
 			self.state.DoAction(action)
 			
 		# blocked -- response = card,blocker
-		elif not self.AnnounceBlock(action,response[0],response[1]):
-			self.state.DoAction(action)
-			
+		else:
+			print response[1].name, " blocked with ", response[0]
+			if not self.AnnounceBlock(action,response[0],response[1]):
+				self.state.DoAction(action)
+		
+
+		print '\n\n'
 		return
 
+	# Returns a list of the names of available actions
 	def DetermineAvailableActions(self):		
 		
 		#must coup above 10 coins
@@ -77,10 +84,10 @@ class Controller:
 		if self.state.bank.cash >= 3:
 			availableActions.append('Tax')
 
-		for name in self.state.players:
-			if self.state.players[name] == self.player:
+		for player in self.state.players:
+			if player == self.player:
 				continue
-			if self.state.players[name].cash >= 2:
+			if player.cash >= 2:
 				availableActions.append('Steal')
 				break
 
@@ -96,28 +103,27 @@ class Controller:
 
 	# tells other players intended action -- should return if action is successful
 	def AnnounceAction(self,action):
-		if UI.AutoAllow():
-			return 'Allow', None
+		#if UI.AutoAllow():
+		#	return 'Allow', None
 
-		for name in self.state.players:
-			if (self.state.players[name] == self.player or self.state.players[name].influence == 0):
+		for player in self.state.players:
+			if (player == self.player or player.influence == 0):
 				continue
-			response = self.state.players[name].handler.DecideToCounterAction(action) 
+			response = player.handler.DecideToCounterAction(action) 
 			if response != 'Allow':
-				return response, self.state.players[name]
+				return response, player
 
 		return response, None
 
 	# returns whether Block is successful
 	def AnnounceBlock(self,action,card, blocker):
-		if UI.AutoAllow():
-			return True
-		for name in self.state.players:
-			if self.state.players[name] == blocker or self.state.players[name].influence == 0:
-				continue
-			else:				
-				if self.state.players[name].handler.DecideToChallengeBlock(action, blocker, card):
-					return blocker.handler.RespondToChallenge(card, self.state.players[name])
+		#if UI.AutoAllow():
+		#	return True
+		for player in self.state.players:
+			if player == blocker or player.influence == 0:
+				continue		
+			if player.handler.DecideToChallengeBlock(action, blocker, card):
+				return blocker.handler.RespondToChallenge(card, player)
 		return True
 
 		#pay up
@@ -152,11 +158,8 @@ class Controller:
 
 	'''
 	def Decide(self, availableOptions, prompt=None):
-		
 		UI.DisplayTable(self.state,self.player)
-		
 		choice = UI.DisplayOptions(prompt, availableOptions, False)
-
 		return choice
 
 	#returns action -- Called when self begins turn
@@ -170,9 +173,12 @@ class Controller:
 
 		# If the action has a target, get it
 		if action.isTargetable:
-			availableTargets = [name for name in self.state.players.keys() if name is not self.player.name]
+			availableTargets = [player.name for player in self.state.players if player is not self.player]
 			targetKey = self.Decide(availableTargets, 'Available Targets:')
-			action.target = self.state.players[targetKey]
+			for player in self.state.players:
+				if player.name is targetKey:
+					action.target = player
+					break
 
 		#choose target's card to coup
 		if actionKey == 'Coup':
@@ -187,12 +193,9 @@ class Controller:
 
 	# Called when blocker attempts to counter an action
 	def DecideToChallengeBlock(self, action, blocker, card):
-		
-
 		p= blocker.name+ ' wants to block '+ action.doer.name+"'s "+ action.name+ ' with '+ card
 		responses = ["Allow", "Challenge"]
 		
-
 		if self.Decide(responses,p) == 'Challenge':
 			return True
 		return False

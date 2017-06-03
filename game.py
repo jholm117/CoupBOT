@@ -1,45 +1,44 @@
-from random import shuffle
-#import controller
+import random
+#import Controller
 import botController
 import UI
+import decisionary
 
 characters = ['Duke', 'Assassin', 'Ambassador', 'Captain', 'Contessa']
 
 
 class State:
 	def __init__(self):
-		self.players = {}
+		self.players = []
 		self.deadPlayers = []
 		self.deck = []
 		self.bank = Bank()
 
-	def initializeGame(self, names):
+	def InitializeGame(self, names,dd,v):
 		
 		# Add 3 of each cards to deck, and then shuffle
 		for character in characters:
 			for i in range(3):
 				self.deck.append(Card(character = character))
 
-		shuffle(self.deck)
+		random.shuffle(self.deck)
 
 		# Add names players
 		for name in names:
-			
 			player = Player(name,self)
-
-			self.players[name] = player				# add to list of players
-
+			self.players.append(player)				# add to list of players
 			self.ExchangeMoney(player, self.bank, 2)	# starting money
-
 			self.Draw(player, 2) 					#  deal 2 cards to player
+			player.handler.tree = dd
+			player.handler.vector = v
 		
 		return
 
 	def CheckGameOver(self):
 		# Game is not over if two players have influence
 		firstPlayer = False
-		for name in self.players:
-			if self.players[name].influence > 0:
+		for player in self.players:
+			if player.influence > 0:
 				if firstPlayer:
 					return False
 				firstPlayer = True
@@ -48,13 +47,13 @@ class State:
 		return True
 
 
-	def run(self):		
+	def Run(self):		
 		while True:	
-			for name in self.players:
+			for player in self.players:
 				if self.CheckGameOver():
 					return
-				if self.players[name].influence:									
-					self.players[name].handler.TakeTurn()
+				if player.influence:									
+					player.handler.TakeTurn()
 		return
 
 	# doer attempts to take amount of money from target -(could be bank or another player)
@@ -95,7 +94,7 @@ class State:
 			player.hand.remove(card)
 			self.deck.append(card)
 
-		shuffle(self.deck)
+		random.shuffle(self.deck)
 		return
 
 	# this may not work with the rest of the system but can be changed
@@ -134,7 +133,6 @@ class State:
 		return
 
 
-
 class Player:
 	def __init__(self,name,state):
 		self.name = name
@@ -155,10 +153,13 @@ class Bank:
 		self.cash = 50
 
 def Play():
+	dictionary = {}
+	index = decisionary.MakeDD(dictionary)
+	feature_vector = [random.randint(1,100) for i in range(index)]
 	names = UI.StartMenu()
 	state = State()
-	state.initializeGame(names)
-	state.run()
+	state.InitializeGame(names,dictionary,feature_vector)
+	state.Run()
 	UI.GameOverScreen(state)
 	return
 

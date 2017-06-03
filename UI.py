@@ -33,14 +33,13 @@ LINES = 9	# number of lines per block
 
 
 def DisplayTable(state,currentPlayer):
-	clear()
+	#clear()
 	table = [ [ [ '' for line in range(LINES) ] for col in range(COLUMNS)] for row in range(ROWS)]
 	index = 0
-	for name in state.players:
+	for player in state.players:
 		row = TableMapping[index][0]
 		col = TableMapping[index][1]
-		block = table[row][col]
-		player = state.players[name]
+		block = table[row][col]		
 		
 		FillBlock(block,player,player==currentPlayer)
 
@@ -182,9 +181,9 @@ def StartMenu():
 	return names
 
 def GameOverScreen(state):
-	for name in state.players:
-		if state.players[name].influence >0:
-			winner = state.players[name]
+	for player in state.players:
+		if player.influence >0:
+			winner = player
 			break
 	DisplayTable(state,winner)
 	print 'Game Over'
