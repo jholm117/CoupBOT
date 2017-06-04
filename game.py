@@ -211,9 +211,7 @@ def AutoRun():
 # THIS IS THE GAME USED IN THE GENETIC ALGORITHM
 # Takes in 2 feature vectors that represent bots
 # Returns 1 if vec1 wins, 0 if vec1 loses
-def GeneticPlay(vec1, vec2):
-	dictionary = {}
-	index = decisionary.MakeDD(dictionary)
+def GeneticPlay(vec1, vec2, dictionary):
 	names = ['Test','Dummy']
 	state = State()
 	state.GeneticInitializeGame(names, dictionary, vec1, vec2)
@@ -228,7 +226,6 @@ def main():
 		i += 1
 		if i % 10000 is 0:
 			print i#, " games played so far \n\n"
-
 
 if __name__=="__main__":
 	main()
