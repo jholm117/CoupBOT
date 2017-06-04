@@ -34,6 +34,30 @@ class State:
 		
 		return
 
+	# THIS IS THE INITIALIZE GAME USED IN THE GENETIC ALGORITHM
+	# Takes in 2 feature vectors, assigns v1 to the first player, v2 to the second player
+	def GeneticInitializeGame(self, names, dd, v1, v2):
+				# Add 3 of each cards to deck, and then shuffle
+		for character in characters:
+			for i in range(3):
+				self.deck.append(Card(character = character))
+
+		random.shuffle(self.deck)
+
+		# Add names players
+		for name in names:
+			player = Player(name,self)
+			self.players.append(player)				# add to list of players
+			self.ExchangeMoney(player, self.bank, 2)	# starting money
+			self.Draw(player, 2) 					#  deal 2 cards to player
+			player.handler.tree = dd
+		
+		self.players[0].handler.vector = v1
+		self.players[1].handler.vector = v2
+		
+		return
+
+
 	def CheckGameOver(self):
 		# Game is not over if two players have influence
 		firstPlayer = False
@@ -183,6 +207,18 @@ def AutoRun():
 	#UI.DisplayTable(state,winner)
 	#print 'Game Over'
 	#print winner.name, " WINS !!!\n\n"
+
+# THIS IS THE GAME USED IN THE GENETIC ALGORITHM
+# Takes in 2 feature vectors that represent bots
+# Returns 1 if vec1 wins, 0 if vec1 loses
+def GeneticPlay(vec1, vec2):
+	dictionary = {}
+	index = decisionary.MakeDD(dictionary)
+	names = ['Test','Dummy']
+	state = State()
+	state.GeneticInitializeGame(names, dictionary, vec1, vec2)
+	state.Run()
+	return 1 if state.players[0].influence > 0 else 0
 
 #called at run-time
 def main():
