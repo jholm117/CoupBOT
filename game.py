@@ -163,10 +163,29 @@ def Play():
 	UI.GameOverScreen(state)
 	return
 
+def AutoRun():
+	dictionary = {}
+	index = decisionary.MakeDD(dictionary)
+	feature_vector = [random.randint(1,100) for i in range(index)]
+	names = ['Theo', 'Jeff']
+	state = State()
+	state.InitializeGame(names, dictionary, feature_vector)
+	state.Run()
+	for player in state.players:
+		if player.influence >0:
+			winner = player
+			break
+	UI.DisplayTable(state,winner)
+	print 'Game Over'
+	print winner.name, " WINS !!!\n\n"
+
 #called at run-time
 def main():
+	i = 0
 	while True:
-		Play()
+		AutoRun()
+		i += 1
+		print i, " games played so far \n\n"
 
 
 if __name__=="__main__":
