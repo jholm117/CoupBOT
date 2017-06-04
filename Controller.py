@@ -34,13 +34,13 @@ class Controller:
 
 	# called on player's turn -- main function
 	def TakeTurn(self):
-		UI.DisplayTable(self.state,self.player)
+		#UI.DisplayTable(self.state,self.player)
 		# get possible actions
 		availableActions = self.DetermineAvailableActions()
 		
 		#choose an action
 		action = self.ChooseAction(availableActions)
-		print action.doer.name, " uses ", action.name
+		#print action.doer.name, " uses ", action.name
 
 		#pay money if applicable
 		self.PayMoney(action)
@@ -51,7 +51,8 @@ class Controller:
 		if (response[0] == 'Challenge'):
 			#if you do have the card in your hand
 			if self.RespondToChallenge(action.associatedCard,response[1]):
-				self.state.DoAction(action)
+				if not self.state.CheckGameOver():
+					self.state.DoAction(action)
 
 		
 
@@ -59,13 +60,12 @@ class Controller:
 			self.state.DoAction(action)
 			
 		# blocked -- response = card,blocker
-		else:
-			print response[1].name, " blocked with ", response[0]
-			if not self.AnnounceBlock(action,response[0],response[1]):
+		elif not self.AnnounceBlock(action,response[0],response[1]):
+			if not self.state.CheckGameOver():
 				self.state.DoAction(action)
 		
 
-		print '\n\n'
+		#print '\n\n'
 		return
 
 	# Returns a list of the names of available actions
@@ -129,6 +129,7 @@ class Controller:
 		#pay up
 	def PayMoney(self,action):
 		if action.cost > 0:
+			#print action.name + 'Pay Money'
 			self.state.ExchangeMoney(self.state.bank,self.player,action.cost)
 		return
 
@@ -138,7 +139,7 @@ class Controller:
 		for card in self.player.hand:
 			if claimedCard == card.name and not card.dead:
 				#Player wasn't lying -- Action successful
-				print challenger.name, ' incorrectly challenged ', self.player.name, ' !!!\n'
+				#print challenger.name, ' incorrectly challenged ', self.player.name, ' !!!\n'
 				temp = challenger.handler.DecideCardToFlip()
 				self.state.RevealCard(challenger, temp)
 				self.state.ShuffleIntoDeck(self.player, [card])
@@ -147,7 +148,7 @@ class Controller:
 				return True
 		
 		#player was lying -- Action unsuccessful
-		print challenger.name, ' correctly challenged ', self.player.name, ' !!!\n'
+		#print challenger.name, ' correctly challenged ', self.player.name, ' !!!\n'
 		temp = self.player.handler.DecideCardToFlip()
 		self.state.RevealCard(self.player, temp)
 		return False

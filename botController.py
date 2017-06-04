@@ -61,28 +61,23 @@ class BotController(Controller.Controller):
 	# Start with 3/4 cards, put 2 back into deck
 	# Returns [cards] to throw away
 	def DecideCardsToKeep(self):
-		cards = [card.name for card in self.player.hand if not card.dead]
+		cards = [card for card in self.player.hand if not card.dead]
+		names = [card.name for card in cards]
 		dictionary = self.tree['Exchange Cards']['Cards']
 
-		card = RandomChoice(dictionary, self.vector, cards)
-		cards.remove(card)
-		if self.player.influence == 2:
-			keep_same = True
-			if card in cards:
-				roll = random.randint(1,100)
-				keep_same = roll < self.tree['Exchange Cards']['Same?']
-			
-			if not keep_same:
-				card2 = RandomChoice(dictionary, self.vector, [card1 for card1 in cards if card1 is not card])
-			else:
-				card2 = RandomChoice(dictionary, self.vector, cards)
-			cards.remove(card2)
+		nameOfCardToKeep = RandomChoice(dictionary, self.vector, names)
+		names.remove(nameOfCardToKeep)
+
+		if self.player.influence is 2:
+			names.remove(RandomChoice(dictionary, self.vector, names))
 
 		ret = []
 		for card in self.player.hand:
-			if card.name in cards:
+			if card.dead:
+				continue
+			if card.name in names:
 				ret.append(card)
-				cards.remove(card.name)
+				names.remove(card.name)
 
 		return ret
 
@@ -109,10 +104,16 @@ class BotController(Controller.Controller):
 # Given a dictionary of key:probability's, roll a random option based on probability
 # Returns the key name of the chosen option
 def RandomChoice(dictionary, vector, availableKeys):
+	#print availableKeys
 	total_prob = 0
 	
 	for key in availableKeys:
 		total_prob += vector[dictionary[key]]
+
+	# edge case: all probabilities are 0
+	if total_prob is 0:
+		randomIndex = random.randint(0,len(availableKeys)-1)
+		return availableKeys[randomIndex]
 
 	roll = random.randint(1, total_prob)
 

@@ -75,6 +75,7 @@ class State:
 		player.influence -= 1
 		if player.influence < 1:
 			self.deadPlayers.append(player.name)
+			#print 'Reveal Card'
 			self.ExchangeMoney(self.bank,player,player.cash)
 
 		card.dead = True
@@ -102,9 +103,11 @@ class State:
 		#print '\nAction = ', action.name
 
 		if(action.name == 'Income'):
+			#print 'Income'
 			self.ExchangeMoney(action.doer,self.bank, 1)
 		
 		elif(action.name == 'Foreign Aid'):
+			#print 'FA'
 			self.ExchangeMoney(action.doer,self.bank, 2)
 		
 		elif(action.name == 'Coup'):
@@ -114,9 +117,11 @@ class State:
 					break
 		
 		elif(action.name == 'Tax'):
+			#print 'Tax'
 			self.ExchangeMoney(action.doer, self.bank, 3)
 		
 		elif(action.name == 'Steal'):
+			#print 'Steal'
 			self.ExchangeMoney(action.doer, action.target, 2)
 		
 		elif(action.name == 'Exchange'):
@@ -166,7 +171,7 @@ def Play():
 def AutoRun():
 	dictionary = {}
 	index = decisionary.MakeDD(dictionary)
-	feature_vector = [random.randint(1,100) for i in range(index)]
+	feature_vector = [random.randint(0,100) for i in range(index)]
 	names = ['Theo', 'Jeff']
 	state = State()
 	state.InitializeGame(names, dictionary, feature_vector)
@@ -175,9 +180,9 @@ def AutoRun():
 		if player.influence >0:
 			winner = player
 			break
-	UI.DisplayTable(state,winner)
-	print 'Game Over'
-	print winner.name, " WINS !!!\n\n"
+	#UI.DisplayTable(state,winner)
+	#print 'Game Over'
+	#print winner.name, " WINS !!!\n\n"
 
 #called at run-time
 def main():
@@ -185,7 +190,8 @@ def main():
 	while True:
 		AutoRun()
 		i += 1
-		print i, " games played so far \n\n"
+		if i % 10000 is 0:
+			print i#, " games played so far \n\n"
 
 
 if __name__=="__main__":
