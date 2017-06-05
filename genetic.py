@@ -167,7 +167,7 @@ def write(filename, vector):
     file.write(write_str[:-1] + '\n')
     file.close()
 
-def normalize(vector, bounds):
+def Normalize(vector, bounds):
     for bound in bounds:
         sum = 0.0
         indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
