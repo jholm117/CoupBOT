@@ -11,8 +11,8 @@ import decisionary
 CHROMOSOME_SIZE = 173  # based on the hard-coded game tree; do not change unless tree changes
 POPULATION_SIZE = 100  # must be even number
 NUM_GENERATIONS = 2
-CROSSOVER_RATE = 0.0
-MUTATION_RATE = 0.00
+CROSSOVER_RATE = 0.6
+MUTATION_RATE = 0.01
 NUMPLAYS = 250
 DICTIONARY = {}
 decisionary.MakeDD(DICTIONARY)
@@ -167,4 +167,14 @@ def write(filename, vector):
     file.write(write_str[:-1] + '\n')
     file.close()
 
-genetic_coup()
+def normalize(vector, bounds):
+    for bound in bounds:
+        sum = 0.0
+        indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
+        for index in indices:
+            sum += vector[index]
+        for index in indices:
+            vector[index] = int(round(vector[index] * 100.0 / sum))
+
+
+#genetic_coup()
