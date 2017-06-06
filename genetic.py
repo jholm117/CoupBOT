@@ -117,6 +117,9 @@ def PrintStatistics(fitnessVector,genNum):
 	stats['avgFs'].append(avgF)
 	stdF = np.std(fitnessVector)
 	stats['stdFs'].append(stdF)
+	genStats = [genNum,minF,medF,maxF,avgF,stdF]
+	if WRITE_TO_FILE:
+		WriteStatsToFile(genStats)
 
 	Categories = [	('GEN:' , genNum),
 					('MIN_F:', minF), 
@@ -132,6 +135,11 @@ def PrintStatistics(fitnessVector,genNum):
 		output += '{:<25}'.format(couple[0] + ' ' + str(couple[1]))
 	
 	print output
+
+def WriteStatsToFile(stats):
+	filename = "CoupGenStats.csv"
+	open(filename, 'w')#.close()
+	write(filename, stats)
 
 # returns avg fitness
 def TestBotFitness(botpop, base_bot):
