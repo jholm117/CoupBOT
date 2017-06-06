@@ -11,17 +11,18 @@ DICTIONARY = {}
 decisionary.MakeDD(DICTIONARY)
 
 CHROMOSOME_SIZE = 172  # based on the hard-coded game tree; do not change unless tree changes
-POPULATION_SIZE = 50    # must be even number
-NUM_GENERATIONS = 100
+POPULATION_SIZE = 100    # must be even number
+NUM_GENERATIONS = 1000
 CROSSOVER_RATE = 0.0
 MUTATION_RATE = 0.00
-BOUNDED_MUTATION_RATE = 0.00   
+BOUNDED_MUTATION_RATE = 0.00
+POINT_MUTATION_RATE = 1.0 / CHROMOSOME_SIZE      
 MUTATION_BOUND = 5
-NUMPLAYS = 50
+NUMPLAYS = 750
 TRAIN_ON_ONE_BASEBOT = 1
 TEST_ON_ONE_BASEBOT = 1   # if 1, will test each gen against just one bot in the first gen.
                           # else tests against the entire first generation 
-
+WRITE_TO_FILE   = False
 
 
 def GeneticCoup():
@@ -35,35 +36,38 @@ def GeneticCoup():
         # construct dictionary where bot_name --> vector, fitness
         botpop[i] = [bot_vector, 0.0]
 
-    first_gen = copy.copy(botpop)
-    base_bot = first_gen[0][0]
 
-    fitness_sum = 0.0
-    avg_gen_fitness = 0.0
+    #first_gen = copy.copy(botpop)
+    base_bot = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
+    base_bot = Normalize(base_bot, decisionary.delineation)  
+    
     for pop in range(NUM_GENERATIONS):
-        botpop = GenerationProcess(botpop, base_bot)
-
-        filename = "generation_" + str(pop+1) + ".csv"
-        open(filename, 'w').close()
-        for i in range(POPULATION_SIZE):
-            write(filename, botpop[i][0])
-
-        print "completed " + str(pop+1) + " generations"
-
-        for j in range(POPULATION_SIZE):
+        botpop = GenerationProcess(botpop, base_bot, pop) 
+        
+        if WRITE_TO_FILE:
             filename = "generation_" + str(pop+1) + ".csv"
-            curr_bot = read(filename, j)
+            open(filename, 'w').close()
+            for i in range(POPULATION_SIZE):
+                write(filename, botpop[i][0])
+
+        #print "completed " + str(pop+1) + " generations"
+        '''
+        for j in range(POPULATION_SIZE):
+            if WRITE_TO_FILE:
+                    filename = "generation_" + str(pop+1) + ".csv"
+                    curr_bot = read(filename, j)
+            
             if TEST_ON_ONE_BASEBOT:
                 # test every bot against only one bot, for consistency
-                fitness_sum += TestOneBotAgainstOne(curr_bot, base_bot)
+                fitness_sum += TestOneBotAgainstOne(curr_bot, base_bot)     
             else:
                 # test every bot against the first generation and add its fitness to sum
                 fitness_sum += TestOneBotAgainstAll(curr_bot, first_gen)
-
+        
         avg_gen_fitness = fitness_sum / POPULATION_SIZE
         fitness_sum = 0.0
         print "the average fitness of bots in gen " + str(pop+1) + " is " + str(avg_gen_fitness)
-
+        '''
     '''
     ##### EVALUATION OF ALL GENERATIONS  (uncomment this if you want to test after)
     fitness_sum = 0.0
@@ -84,15 +88,20 @@ def GeneticCoup():
         print "the average fitness of bots in gen " + str(i+1) + " is " + str(avg_gen_fitness)
     '''
 
-def GenerationProcess(botpop, base_bot):
-    botpop = TestBotFitness(botpop, base_bot)
+def GenerationProcess(botpop, base_bot,genNum):
+    avg_gen_fitness_max_pair = TestBotFitness(botpop, base_bot)
     botpop = SelectAndCrossover(botpop)
     botpop = Mutate(botpop)
-    return botpop
+
+    print 'GEN ' + str(genNum+1) + ' AVG_F: ' + str(avg_gen_fitness_max_pair[0]    ) +'\t MAX_F: ' + str(avg_gen_fitness_max_pair[1]  )  
+    return botpop     
 
 
+# returns avg fitness
 def TestBotFitness(botpop, base_bot):
     # test each chromosome by running the game, assign a fitness score
+    fitnessSum = 0.0
+    maxFitness = 0.0
     for bot_name, vec_fitness_pair in botpop.iteritems(): 
         bot_vector = vec_fitness_pair[0]
         # run the game, based on bot_vector 
@@ -101,7 +110,13 @@ def TestBotFitness(botpop, base_bot):
         else:
             fitness = TestOneBotAgainstAll(bot_vector, botpop)
         botpop[bot_name][1] = fitness
-    return botpop
+        fitnessSum  += fitness
+        if fitness  > maxFitness    :
+                maxFitness   = fitness 
+
+    return (fitnessSum / POPULATION_SIZE, maxFitness    )
+ 
+
 
 
 def SelectAndCrossover(botpop):
@@ -165,23 +180,21 @@ def Crossover(botpop,newbots):
     bot1 = botpop[newbots[0]]
     bot2 = botpop[newbots[1]]
 
-    vec1 = bot1[0]
-    vec2 = bot2[0]
-
     for bound in decisionary.delineation:
         roll = random.random()
         if roll <= CROSSOVER_RATE:
-            temp_vec = copy.copy(vec1)
+            
             indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
             for index in indices:
-                vec1[index] = vec2[index]
-                vec2[index] = temp_vec[index]
+                temp = bot1[0][index]
+                bot1[0][index] = bot2[0][index]
+                bot2[0][index] = temp
 
-    bot1[0] = vec1
-    bot2[0] = vec2
     return [bot1, bot2]
 
+
 def Mutate(botpop):
+    #print decisionary.delineation
     # botpop is a dictionary of botpop[bot_name] = [feature_vector[], fitness]
     for bot_name in botpop:
         for bound in decisionary.delineation:
@@ -195,7 +208,6 @@ def Mutate(botpop):
                 botpop[bot_name][0] = Normalize(botpop[bot_name][0], [bound])
 
             # BOUNDED MUTATION
-            roll = random.random()
             if roll <= BOUNDED_MUTATION_RATE:
                 indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
                 for index in indices:
@@ -203,7 +215,15 @@ def Mutate(botpop):
                     botpop[bot_name][0][index] = max(botpop[bot_name][0][index], 0)
                     botpop[bot_name][0][index] = min(botpop[bot_name][0][index], 100)
                 botpop[bot_name][0] = Normalize(botpop[bot_name][0], [bound])
-                
+            
+            indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
+            for index in indices:                
+                if roll <= POINT_MUTATION_RATE:
+                    botpop[bot_name][0][index] = random.randint(0,100)
+            botpop[bot_name][0] = Normalize(botpop[bot_name][0],[bound])
+
+
+
     return botpop
 
 
@@ -238,12 +258,12 @@ def read(filename, linenum):
 
 def Normalize(vector, bounds):
     for bound in bounds:
-        sum = 0.0
+        totalSum = 0.0
         indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
         for index in indices:
-            sum += vector[index]
+            totalSum += vector[index]
         for index in indices:
-            vector[index] = int(round((vector[index] / sum) * 100.0))
+            vector[index] = int(round((vector[index] / totalSum) * 100.0))
     return vector
 
 
@@ -255,4 +275,4 @@ def write(filename, vector):
     file.write(write_str[:-1] + '\n')
     file.close()
 
-wGeneticCoup()
+GeneticCoup()
