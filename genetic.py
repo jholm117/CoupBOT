@@ -6,6 +6,8 @@ import random
 import copy
 import game
 import decisionary
+import numpy as np
+import matplotlib.pyplot as plt
 
 DICTIONARY = {}
 decisionary.MakeDD(DICTIONARY)
@@ -13,42 +15,49 @@ decisionary.MakeDD(DICTIONARY)
 CHROMOSOME_SIZE = 172  # based on the hard-coded game tree; do not change unless tree changes
 POPULATION_SIZE = 100    # must be even number
 NUM_GENERATIONS = 1000
-CROSSOVER_RATE = 0.0
+CROSSOVER_RATE = 0.05           
 MUTATION_RATE = 0.00
-BOUNDED_MUTATION_RATE = 0.00
-POINT_MUTATION_RATE = 1.0 / CHROMOSOME_SIZE      
+BOUNDED_MUTATION_RATE = 0.03
+POINT_MUTATION_RATE = 1.0 / CHROMOSOME_SIZE       
 MUTATION_BOUND = 5
-NUMPLAYS = 750
+NUMPLAYS = 500
 TRAIN_ON_ONE_BASEBOT = 1
 TEST_ON_ONE_BASEBOT = 1   # if 1, will test each gen against just one bot in the first gen.
                           # else tests against the entire first generation 
 WRITE_TO_FILE   = False
 
-
+stats = {
+			'genNums' : [],
+			'minFs' : [],
+			'maxFs' : [],
+			'medFs' : [],
+			'avgFs' : [],
+			'stdFs' : []} 
+	
 def GeneticCoup():
+	plt.ion()
+	#### POPULATION CREATION
+	botpop = {}
+	for i in range(POPULATION_SIZE):
+	    # randomly create feature vector 
+	    bot_vector = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
+	    bot_vector = Normalize(bot_vector, decisionary.delineation)
+	    # construct dictionary where bot_name --> vector, fitness
+	    botpop[i] = [bot_vector, 0.0]
 
-    #### POPULATION CREATION
-    botpop = {}
-    for i in range(POPULATION_SIZE):
-        # randomly create feature vector 
-        bot_vector = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
-        bot_vector = Normalize(bot_vector, decisionary.delineation)
-        # construct dictionary where bot_name --> vector, fitness
-        botpop[i] = [bot_vector, 0.0]
 
+	#first_gen = copy.copy(botpop)
+	base_bot = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
+	base_bot = Normalize(base_bot, decisionary.delineation)  
 
-    #first_gen = copy.copy(botpop)
-    base_bot = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
-    base_bot = Normalize(base_bot, decisionary.delineation)  
-    
-    for pop in range(NUM_GENERATIONS):
-        botpop = GenerationProcess(botpop, base_bot, pop) 
-        
-        if WRITE_TO_FILE:
-            filename = "generation_" + str(pop+1) + ".csv"
-            open(filename, 'w').close()
-            for i in range(POPULATION_SIZE):
-                write(filename, botpop[i][0])
+	for pop in range(NUM_GENERATIONS):
+	    botpop = GenerationProcess(botpop, base_bot, pop) 
+	    
+	    if WRITE_TO_FILE:
+	        filename = "generation_" + str(pop+1) + ".csv"
+	        open(filename, 'w').close()
+	        for i in range(POPULATION_SIZE):
+	            write(filename, botpop[i][0])
 
         #print "completed " + str(pop+1) + " generations"
         '''
@@ -68,7 +77,7 @@ def GeneticCoup():
         fitness_sum = 0.0
         print "the average fitness of bots in gen " + str(pop+1) + " is " + str(avg_gen_fitness)
         '''
-    '''
+    	'''
     ##### EVALUATION OF ALL GENERATIONS  (uncomment this if you want to test after)
     fitness_sum = 0.0
     avg_gen_fitness = 0.0
@@ -89,19 +98,45 @@ def GeneticCoup():
     '''
 
 def GenerationProcess(botpop, base_bot,genNum):
-    avg_gen_fitness_max_pair = TestBotFitness(botpop, base_bot)
-    botpop = SelectAndCrossover(botpop)
-    botpop = Mutate(botpop)
+	fitnessVector = TestBotFitness(botpop, base_bot)
+	botpop = SelectAndCrossover(botpop)
+	botpop = Mutate(botpop)
+	PrintStatistics(fitnessVector,genNum)
+	return botpop     
 
-    print 'GEN ' + str(genNum+1) + ' AVG_F: ' + str(avg_gen_fitness_max_pair[0]    ) +'\t MAX_F: ' + str(avg_gen_fitness_max_pair[1]  )  
-    return botpop     
+def PrintStatistics(fitnessVector,genNum):
+	genNum += 1
+	stats['genNums'].append(genNum)
+	minF = min(fitnessVector)
+	stats['minFs'].append(minF)
+	maxF = max(fitnessVector)
+	stats['maxFs'].append(maxF)
+	medF = np.median(fitnessVector)
+	stats['medFs'].append(medF)
+	avgF = np.mean(fitnessVector)
+	stats['avgFs'].append(avgF)
+	stdF = np.std(fitnessVector)
+	stats['stdFs'].append(stdF)
 
+	Categories = [	('GEN:' , genNum),
+					('MIN_F:', minF), 
+					('MED_F:', medF),
+					('MAX_F:', maxF),
+					('AVG_F:', avgF),
+					('STD_F:', stdF)]
+	output = ''
+	genNums = stats['genNums']
+	plt.plot(genNums, stats['avgFs'], 'r--', genNums, stats['stdFs'], 'b--', genNums, stats['maxFs'], 'g--')
+	plt.pause(0.05)
+	for couple in Categories:
+		output += '{:<25}'.format(couple[0] + ' ' + str(couple[1]))
+	
+	print output
 
 # returns avg fitness
 def TestBotFitness(botpop, base_bot):
     # test each chromosome by running the game, assign a fitness score
-    fitnessSum = 0.0
-    maxFitness = 0.0
+    fitnesses = []
     for bot_name, vec_fitness_pair in botpop.iteritems(): 
         bot_vector = vec_fitness_pair[0]
         # run the game, based on bot_vector 
@@ -109,12 +144,9 @@ def TestBotFitness(botpop, base_bot):
             fitness = TestOneBotAgainstOne(bot_vector, base_bot)
         else:
             fitness = TestOneBotAgainstAll(bot_vector, botpop)
-        botpop[bot_name][1] = fitness
-        fitnessSum  += fitness
-        if fitness  > maxFitness    :
-                maxFitness   = fitness 
-
-    return (fitnessSum / POPULATION_SIZE, maxFitness    )
+        botpop[bot_name][1] = fitness * fitness
+        fitnesses.append(fitness)
+    return fitnesses
  
 
 
@@ -263,7 +295,10 @@ def Normalize(vector, bounds):
         for index in indices:
             totalSum += vector[index]
         for index in indices:
-            vector[index] = int(round((vector[index] / totalSum) * 100.0))
+            if not totalSum: 
+                vector[index] = 0
+            else:
+                vector[index] = int(round((vector[index] / totalSum) * 100.0))
     return vector
 
 
@@ -276,3 +311,18 @@ def write(filename, vector):
     file.close()
 
 GeneticCoup()
+'''
+bot_vector = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
+bot_vector = Normalize(bot_vector, decisionary.delineation)
+
+vec2 = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
+vec2 = Normalize(vec2, decisionary.delineation)
+
+wins = 0.0
+games_played = 0
+while True:
+    wins += game.GeneticPlay(bot_vector,vec2,DICTIONARY)
+    games_played += 1
+    if games_played % 500 is 0:
+        print 'Games played: ' + str(games_played)   + '\t\t'+ 'win %: ' + str(wins / float(games_played))  
+'''
