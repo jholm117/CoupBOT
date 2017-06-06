@@ -1,0 +1,200 @@
+completed 1 generations
+the average fitness of bots in gen 1 is 0.4925
+completed 2 generations
+the average fitness of bots in gen 2 is 0.4917
+completed 3 generations
+the average fitness of bots in gen 3 is 0.49348
+completed 4 generations
+the average fitness of bots in gen 4 is 0.49442
+completed 5 generations
+the average fitness of bots in gen 5 is 0.5043
+completed 6 generations
+the average fitness of bots in gen 6 is 0.50942
+completed 7 generations
+the average fitness of bots in gen 7 is 0.51252
+completed 8 generations
+the average fitness of bots in gen 8 is 0.52172
+completed 9 generations
+the average fitness of bots in gen 9 is 0.52836
+completed 10 generations
+the average fitness of bots in gen 10 is 0.52678
+completed 11 generations
+the average fitness of bots in gen 11 is 0.52612
+completed 12 generations
+the average fitness of bots in gen 12 is 0.52788
+completed 13 generations
+the average fitness of bots in gen 13 is 0.53298
+completed 14 generations
+the average fitness of bots in gen 14 is 0.53654
+completed 15 generations
+the average fitness of bots in gen 15 is 0.5393
+completed 16 generations
+the average fitness of bots in gen 16 is 0.54148
+completed 17 generations
+the average fitness of bots in gen 17 is 0.53862
+completed 18 generations
+the average fitness of bots in gen 18 is 0.54106
+completed 19 generations
+the average fitness of bots in gen 19 is 0.54154
+completed 20 generations
+the average fitness of bots in gen 20 is 0.54184
+completed 21 generations
+the average fitness of bots in gen 21 is 0.54196
+completed 22 generations
+the average fitness of bots in gen 22 is 0.54524
+completed 23 generations
+the average fitness of bots in gen 23 is 0.54498
+completed 24 generations
+the average fitness of bots in gen 24 is 0.54626
+completed 25 generations
+the average fitness of bots in gen 25 is 0.54888
+completed 26 generations
+the average fitness of bots in gen 26 is 0.55876
+completed 27 generations
+the average fitness of bots in gen 27 is 0.55636
+completed 28 generations
+the average fitness of bots in gen 28 is 0.55374
+completed 29 generations
+the average fitness of bots in gen 29 is 0.5499
+completed 30 generations
+the average fitness of bots in gen 30 is 0.55692
+completed 31 generations
+the average fitness of bots in gen 31 is 0.56148
+completed 32 generations
+the average fitness of bots in gen 32 is 0.55492
+completed 33 generations
+the average fitness of bots in gen 33 is 0.56146
+completed 34 generations
+the average fitness of bots in gen 34 is 0.56226
+completed 35 generations
+the average fitness of bots in gen 35 is 0.56326
+completed 36 generations
+the average fitness of bots in gen 36 is 0.56682
+completed 37 generations
+the average fitness of bots in gen 37 is 0.56732
+completed 38 generations
+the average fitness of bots in gen 38 is 0.56876
+completed 39 generations
+the average fitness of bots in gen 39 is 0.57454
+completed 40 generations
+the average fitness of bots in gen 40 is 0.56542
+completed 41 generations
+the average fitness of bots in gen 41 is 0.57382
+completed 42 generations
+the average fitness of bots in gen 42 is 0.58572
+        completed 43 generations
+the average fitness of bots in gen 43 is 0.57872
+completed 44 generations
+the average fitness of bots in gen 44 is 0.5695
+completed 45 generations
+the average fitness of bots in gen 45 is 0.56764
+completed 46 generations
+the average fitness of bots in gen 46 is 0.56706
+completed 47 generations
+the average fitness of bots in gen 47 is 0.56888
+completed 48 generations
+the average fitness of bots in gen 48 is 0.56984
+completed 49 generations
+the average fitness of bots in gen 49 is 0.56826
+completed 50 generations
+the average fitness of bots in gen 50 is 0.57664
+completed 51 generations
+the average fitness of bots in gen 51 is 0.57898
+completed 52 generations
+the average fitness of bots in gen 52 is 0.58156
+completed 53 generations
+the average fitness of bots in gen 53 is 0.58212
+completed 54 generations
+the average fitness of bots in gen 54 is 0.58658
+completed 55 generations
+the average fitness of bots in gen 55 is 0.58076
+completed 56 generations
+the average fitness of bots in gen 56 is 0.58006
+completed 57 generations
+the average fitness of bots in gen 57 is 0.5819
+completed 58 generations
+the average fitness of bots in gen 58 is 0.59052
+completed 59 generations
+the average fitness of bots in gen 59 is 0.59536
+completed 60 generations
+the average fitness of bots in gen 60 is 0.60038
+completed 61 generations
+the average fitness of bots in gen 61 is 0.60236
+completed 62 generations
+the average fitness of bots in gen 62 is 0.6037
+completed 63 generations
+the average fitness of bots in gen 63 is 0.59006
+completed 64 generations
+the average fitness of bots in gen 64 is 0.5996
+completed 65 generations
+the average fitness of bots in gen 65 is 0.60004
+completed 66 generations
+the average fitness of bots in gen 66 is 0.59598
+completed 67 generations
+the average fitness of bots in gen 67 is 0.59824
+completed 68 generations
+the average fitness of bots in gen 68 is 0.59818
+completed 69 generations
+the average fitness of bots in gen 69 is 0.59206
+completed 70 generations
+the average fitness of bots in gen 70 is 0.59686
+completed 71 generations
+the average fitness of bots in gen 71 is 0.59594
+completed 72 generations
+the average fitness of bots in gen 72 is 0.59768
+completed 73 generations
+the average fitness of bots in gen 73 is 0.58998
+completed 74 generations
+the average fitness of bots in gen 74 is 0.5862
+completed 75 generations
+the average fitness of bots in gen 75 is 0.57698
+completed 76 generations
+the average fitness of bots in gen 76 is 0.57676
+completed 77 generations
+the average fitness of bots in gen 77 is 0.58426
+completed 78 generations
+the average fitness of bots in gen 78 is 0.58236
+completed 79 generations
+the average fitness of bots in gen 79 is 0.58318
+completed 80 generations
+the average fitness of bots in gen 80 is 0.57478
+completed 81 generations
+the average fitness of bots in gen 81 is 0.5738
+completed 82 generations
+the average fitness of bots in gen 82 is 0.57664
+completed 83 generations
+the average fitness of bots in gen 83 is 0.57366
+completed 84 generations
+the average fitness of bots in gen 84 is 0.5749
+completed 85 generations
+the average fitness of bots in gen 85 is 0.57726
+completed 86 generations
+the average fitness of bots in gen 86 is 0.57672
+completed 87 generations
+the average fitness of bots in gen 87 is 0.57494
+completed 88 generations
+the average fitness of bots in gen 88 is 0.57112
+completed 89 generations
+the average fitness of bots in gen 89 is 0.56586
+completed 90 generations
+the average fitness of bots in gen 90 is 0.57348
+completed 91 generations
+the average fitness of bots in gen 91 is 0.57222
+completed 92 generations
+the average fitness of bots in gen 92 is 0.57578
+completed 93 generations
+the average fitness of bots in gen 93 is 0.58364
+completed 94 generations
+the average fitness of bots in gen 94 is 0.58546
+completed 95 generations
+the average fitness of bots in gen 95 is 0.57624
+completed 96 generations
+the average fitness of bots in gen 96 is 0.57888
+completed 97 generations
+the average fitness of bots in gen 97 is 0.5817
+completed 98 generations
+the average fitness of bots in gen 98 is 0.58522
+completed 99 generations
+the average fitness of bots in gen 99 is 0.58046
+completed 100 generations
+the average fitness of bots in gen 100 is 0.5784

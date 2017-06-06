@@ -11,13 +11,13 @@ DICTIONARY = {}
 decisionary.MakeDD(DICTIONARY)
 
 CHROMOSOME_SIZE = 172  # based on the hard-coded game tree; do not change unless tree changes
-POPULATION_SIZE = 50    # must be even number
+POPULATION_SIZE = 100    # must be even number
 NUM_GENERATIONS = 100
-CROSSOVER_RATE = 0.0
+CROSSOVER_RATE = 0.5
 MUTATION_RATE = 0.00
-BOUNDED_MUTATION_RATE = 0.00   
-MUTATION_BOUND = 5
-NUMPLAYS = 50
+BOUNDED_MUTATION_RATE = 0.03
+MUTATION_BOUND = 6
+NUMPLAYS = 500
 TRAIN_ON_ONE_BASEBOT = 1
 TEST_ON_ONE_BASEBOT = 1   # if 1, will test each gen against just one bot in the first gen.
                           # else tests against the entire first generation 
@@ -48,7 +48,7 @@ def GeneticCoup():
         for i in range(POPULATION_SIZE):
             write(filename, botpop[i][0])
 
-        print "completed " + str(pop+1) + " generations"
+        #print "completed " + str(pop+1) + " generations"
 
         for j in range(POPULATION_SIZE):
             filename = "generation_" + str(pop+1) + ".csv"
@@ -181,6 +181,19 @@ def Crossover(botpop,newbots):
     bot2[0] = vec2
     return [bot1, bot2]
 
+def Crossover2(botpop, newbots):
+    bot1 = botpop[newbots[0]]
+    bot2 = botpop[newbots[1]]
+
+    vec1 = bot1[0]
+    vec2 = bot2[0]
+
+
+
+    bot1[0] = vec1
+    bot2[0] = vec2
+    return [bot1, bot2]
+
 def Mutate(botpop):
     # botpop is a dictionary of botpop[bot_name] = [feature_vector[], fitness]
     for bot_name in botpop:
@@ -197,11 +210,15 @@ def Mutate(botpop):
             # BOUNDED MUTATION
             roll = random.random()
             if roll <= BOUNDED_MUTATION_RATE:
+                #print "BOUND MUTATION IN ", bot_name
                 indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
                 for index in indices:
+                    #st = "Previous: " + str(botpop[bot_name][0][index]) + "\t\t"
                     botpop[bot_name][0][index] += random.randint(-MUTATION_BOUND, MUTATION_BOUND)
                     botpop[bot_name][0][index] = max(botpop[bot_name][0][index], 0)
                     botpop[bot_name][0][index] = min(botpop[bot_name][0][index], 100)
+                    #st += "New: " + str(botpop[bot_name][0][index])
+                    #print st
                 botpop[bot_name][0] = Normalize(botpop[bot_name][0], [bound])
                 
     return botpop
@@ -255,4 +272,4 @@ def write(filename, vector):
     file.write(write_str[:-1] + '\n')
     file.close()
 
-wGeneticCoup()
+GeneticCoup()
