@@ -6,6 +6,7 @@ import random
 import copy
 import game
 import decisionary
+import numpy as np
 
 DICTIONARY = {}
 decisionary.MakeDD(DICTIONARY)
@@ -13,17 +14,20 @@ decisionary.MakeDD(DICTIONARY)
 CHROMOSOME_SIZE = 172  # based on the hard-coded game tree; do not change unless tree changes
 POPULATION_SIZE = 100    # must be even number
 NUM_GENERATIONS = 1000
-CROSSOVER_RATE = 0.0
+UNIFORM_CROSSOVER_RATE = 0.0
+GENE_CROSSOVER_RATE = 0.0
+SP_CROSSOVER_RATE = 0.01
 MUTATION_RATE = 0.00
-BOUNDED_MUTATION_RATE = 0.00
-POINT_MUTATION_RATE = 1.0 / CHROMOSOME_SIZE      
+BOUNDED_MUTATION_RATE = 0.02
+POINT_MUTATION_RATE = 0#2.0 / CHROMOSOME_SIZE      
 MUTATION_BOUND = 5
-NUMPLAYS = 750
+NUMPLAYS = 250
 TRAIN_ON_ONE_BASEBOT = 1
-TEST_ON_ONE_BASEBOT = 1   # if 1, will test each gen against just one bot in the first gen.
+TEST_ON_ONE_BASEBOT = 1    # if 1, will test each gen against just one bot in the first gen.
                           # else tests against the entire first generation 
-WRITE_TO_FILE   = False
+WRITE_TO_FILE   = True
 
+DATA_FILENAME = 'data.txt'
 
 def GeneticCoup():
 
@@ -36,10 +40,20 @@ def GeneticCoup():
         # construct dictionary where bot_name --> vector, fitness
         botpop[i] = [bot_vector, 0.0]
 
+    base_bot_file = "bb.csv"
+
 
     #first_gen = copy.copy(botpop)
     base_bot = [random.randint(1,100) for j in range(CHROMOSOME_SIZE)]
     base_bot = Normalize(base_bot, decisionary.delineation)  
+    write(base_bot_file, base_bot)
+
+    file = open(DATA_FILENAME, "w")
+    file.close()
+    #write(DATA_FILENAME, base_bot)
+    file = open(DATA_FILENAME, "a")
+    file.write("[\'Generation\',\'Maximum Fitness\',\'Minimum Fitness\', \'Average Fitness\'],\n")
+    file.close()
     
     for pop in range(NUM_GENERATIONS):
         botpop = GenerationProcess(botpop, base_bot, pop) 
@@ -89,11 +103,22 @@ def GeneticCoup():
     '''
 
 def GenerationProcess(botpop, base_bot,genNum):
-    avg_gen_fitness_max_pair = TestBotFitness(botpop, base_bot)
+    fitnessVector = TestBotFitness(botpop, base_bot)
     botpop = SelectAndCrossover(botpop)
     botpop = Mutate(botpop)
 
-    print 'GEN ' + str(genNum+1) + ' AVG_F: ' + str(avg_gen_fitness_max_pair[0]    ) +'\t MAX_F: ' + str(avg_gen_fitness_max_pair[1]  )  
+    #print 'GEN ' + str(genNum+1) + ' AVG_F: ' + str(avg_gen_fitness_max_pair[0]    ) +'\t MAX_F: ' + str(avg_gen_fitness_max_pair[1]  )  
+    maxF = max(fitnessVector)
+    minF = min(fitnessVector)
+    avgF = np.mean(fitnessVector)
+    medF = np.median(fitnessVector)
+    s = '[\'Gen ' + str(genNum) + '\',' + str(maxF) + ',' + str(minF) + ',' + str(avgF) + '],\n'
+    file = open(DATA_FILENAME, "a")
+    file.write(s)
+    file.close()
+
+    print s
+
     return botpop     
 
 
@@ -121,7 +146,7 @@ def TestBotFitness(botpop, base_bot):
 
 def SelectAndCrossover(botpop):
     # selection new population based on probabilites weighted by fitness score, with crossover
-    fitness_total = 0
+    fitness_total = 0.0
     #roulette_total = 0
     new_botpop = {}
 
@@ -129,7 +154,7 @@ def SelectAndCrossover(botpop):
         fitness_total += botpop[bot_name][1]
 
     # array of probabilities for each bot, based on fitness
-    rel_fitness = [botpop[bot][1]/fitness_total for bot in botpop]
+    rel_fitness = [(botpop[bot][1]/fitness_total if fitness_total else 0) for bot in botpop]
 
     # generate probability/roulette wheel intervals 
     probs = [sum(rel_fitness[:i+1]) for i in range(len(rel_fitness))]
@@ -147,30 +172,11 @@ def SelectAndCrossover(botpop):
                     break
 
         #### CROSSOVER
+        
         newbots = Crossover(botpop,newbots)
+
         new_botpop[i] = newbots[0]
         new_botpop[i+1] = newbots[1]
-        '''
-            # choose the crossover point, crossover 
-            crossover_point = random.randint(0, CHROMOSOME_SIZE)
-            bot1 = botpop[newbots[0]]
-            bot2 = botpop[newbots[1]]
-            chrom1 = bot1[0]
-            chrom1_copy = copy.copy(chrom1)
-            chrom2 = bot2[0]
-            chrom1[crossover_point:CHROMOSOME_SIZE] = chrom2[crossover_point:CHROMOSOME_SIZE]
-            chrom2[crossover_point:CHROMOSOME_SIZE] = chrom1_copy[crossover_point:CHROMOSOME_SIZE]
-            bot1[0] = chrom1
-            bot2[0] = chrom2
-            # add newbots to the new_botpop
-            new_botpop[i] = bot1
-            new_botpop[i+1] = bot2
-            
-        else:
-            # add newbots to the new_botpop
-            new_botpop[i] = botpop[newbots[0]]
-            new_botpop[i+1] = botpop[newbots[1]]
-        '''
         i += 2
 
     return new_botpop
@@ -180,15 +186,30 @@ def Crossover(botpop,newbots):
     bot1 = botpop[newbots[0]]
     bot2 = botpop[newbots[1]]
 
-    for bound in decisionary.delineation:
-        roll = random.random()
-        if roll <= CROSSOVER_RATE:
-            
-            indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
-            for index in indices:
-                temp = bot1[0][index]
-                bot1[0][index] = bot2[0][index]
-                bot2[0][index] = temp
+
+    # UNIFORM CROSSOVER
+    roll = random.random()
+    if roll <= UNIFORM_CROSSOVER_RATE:
+        for bound in decisionary.delineation:
+            roll = random.random()
+            if roll <= UNIFORM_CROSSOVER_RATE:
+                indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
+                for index in indices:
+                    temp = bot1[0][index]
+                    bot1[0][index] = bot2[0][index]
+                    bot2[0][index] = temp
+
+    # SINGLE POINT CROSSOVER
+    roll = random.random()
+    if roll <= SP_CROSSOVER_RATE:
+        roll = random.randint(0, len(decisionary.delineation)-1)
+        crossover_point = decisionary.delineation[roll][0]
+        indices = [i+crossover_point for i in range(172-crossover_point)]
+        for index in indices:
+            temp = bot1[0][index]
+            bot1[0][index] = bot2[0][index]
+            bot2[0][index] = temp
+
 
     return [bot1, bot2]
 
@@ -258,12 +279,16 @@ def read(filename, linenum):
 
 def Normalize(vector, bounds):
     for bound in bounds:
-        totalSum = 0.0
-        indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
-        for index in indices:
-            totalSum += vector[index]
-        for index in indices:
-            vector[index] = int(round((vector[index] / totalSum) * 100.0))
+        if bound[0] is not bound[1]:
+            totalSum = 0.0
+            indices = [i+bound[0] for i in range(bound[1]-bound[0]+1)]
+            for index in indices:
+                totalSum += vector[index]
+            for index in indices:
+                if not totalSum:
+                    vector[index] = 0
+                else:
+                    vector[index] = int(round((vector[index] / totalSum) * 100.0))
     return vector
 
 
