@@ -24,7 +24,7 @@ NUMPLAYS = 500
 TRAIN_ON_ONE_BASEBOT = 1
 TEST_ON_ONE_BASEBOT = 1   # if 1, will test each gen against just one bot in the first gen.
                           # else tests against the entire first generation 
-WRITE_TO_FILE   = False
+WRITE_TO_FILE   = True
 
 stats = {
 			'genNums' : [],
@@ -32,7 +32,10 @@ stats = {
 			'maxFs' : [],
 			'medFs' : [],
 			'avgFs' : [],
-			'stdFs' : []} 
+			'stdFs' : []}
+
+FILENAME = "CoupGenStats.csv"
+open(FILENAME, 'w').close()
 	
 def GeneticCoup():
 	plt.ion()
@@ -52,12 +55,13 @@ def GeneticCoup():
 
 	for pop in range(NUM_GENERATIONS):
 	    botpop = GenerationProcess(botpop, base_bot, pop) 
-	    
+	    '''
 	    if WRITE_TO_FILE:
 	        filename = "generation_" + str(pop+1) + ".csv"
 	        open(filename, 'w').close()
 	        for i in range(POPULATION_SIZE):
 	            write(filename, botpop[i][0])
+	    '''
 
         #print "completed " + str(pop+1) + " generations"
         '''
@@ -119,7 +123,7 @@ def PrintStatistics(fitnessVector,genNum):
 	stats['stdFs'].append(stdF)
 	genStats = [genNum,minF,medF,maxF,avgF,stdF]
 	if WRITE_TO_FILE:
-		WriteStatsToFile(genStats)
+		write(FILENAME, genStats)
 
 	Categories = [	('GEN:' , genNum),
 					('MIN_F:', minF), 
@@ -135,11 +139,6 @@ def PrintStatistics(fitnessVector,genNum):
 		output += '{:<25}'.format(couple[0] + ' ' + str(couple[1]))
 	
 	print output
-
-def WriteStatsToFile(stats):
-	filename = "CoupGenStats.csv"
-	open(filename, 'w')#.close()
-	write(filename, stats)
 
 # returns avg fitness
 def TestBotFitness(botpop, base_bot):
